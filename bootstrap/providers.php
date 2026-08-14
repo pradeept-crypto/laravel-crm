@@ -13,6 +13,7 @@ use Webkul\Core\Providers\CoreServiceProvider;
 use Webkul\DataGrid\Providers\DataGridServiceProvider;
 use Webkul\DataTransfer\Providers\DataTransferServiceProvider;
 use Webkul\Email\Providers\EmailServiceProvider;
+use TestModule\Providers\TestModuleServiceProvider;
 use Webkul\EmailTemplate\Providers\EmailTemplateServiceProvider;
 use Webkul\GoogleContact\Providers\GoogleContactServiceProvider;
 use Webkul\Installer\Providers\InstallerServiceProvider;
@@ -37,6 +38,7 @@ return [
      * Application Service Providers...
      */
     AppServiceProvider::class,
+    TestModuleServiceProvider::class,
 
     /*
      * Webkul Service Providers...
