@@ -1,0 +1,28 @@
+{
+    "name": "webkul/whatsapp",
+    "description": "WhatsApp Business Cloud API integration for Krayin CRM (leads, persons, two-way chat).",
+    "license": "MIT",
+    "type": "library",
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "authors": [
+        {
+            "name": "Your Company / KADIT Innovations"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Webkul\\WhatsApp\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\WhatsApp\\Providers\\WhatsAppServiceProvider",
+                "Webkul\\WhatsApp\\Providers\\ModuleServiceProvider"
+            ]
+        }
+    }
+}

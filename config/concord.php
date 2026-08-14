@@ -16,6 +16,7 @@ use Webkul\Tag\Providers\ModuleServiceProvider as TagModuleServiceProvider;
 use Webkul\User\Providers\ModuleServiceProvider as UserModuleServiceProvider;
 use Webkul\Warehouse\Providers\ModuleServiceProvider as WarehouseModuleServiceProvider;
 use Webkul\WebForm\Providers\ModuleServiceProvider as WebFormModuleServiceProvider;
+use Webkul\WhatsApp\Providers\ModuleServiceProvider as WhatsAppModuleServiceProvider;
 
 return [
     'modules' => [
@@ -35,6 +36,7 @@ return [
         UserModuleServiceProvider::class,
         WarehouseModuleServiceProvider::class,
         WebFormModuleServiceProvider::class,
+        WhatsAppModuleServiceProvider::class,
     ],
 
     'register_route_models' => true,

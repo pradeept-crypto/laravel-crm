@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'admin/mail/inbound-parse',
             'admin/web-forms/forms/*',
+            'webhook/whatsapp',
+            'webhook/whatsapp/*',
         ]);
 
         $middleware->api(prepend: [

@@ -64,7 +64,7 @@ return [
                 'title' => 'admin::app.configuration.index.general.settings.footer.show',
                 'info' => 'admin::app.configuration.index.general.settings.footer.show-info',
                 'type' => 'boolean',
-                'default' => 1,
+                'default' => 0,
             ], [
                 'name' => 'label',
                 'title' => 'admin::app.configuration.index.general.settings.footer.powered-by',
