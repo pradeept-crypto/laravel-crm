@@ -54,12 +54,13 @@ RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf /etc/apache2/sites-available
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+RUN chmod +x docker-entrypoint.sh \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Default port
 ENV PORT=80
 EXPOSE 80
 
-# Start Apache & run migrations
-CMD ["sh", "-c", "php artisan migrate --seed --force && (php artisan storage:link || true) && apache2-foreground"]
+# Run entrypoint
+ENTRYPOINT ["./docker-entrypoint.sh"]
