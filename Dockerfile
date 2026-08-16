@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure and install PHP extensions
+# Configure and install PHP extensions including calendar, gd, zip, intl, pdo_mysql
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
@@ -27,6 +27,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     intl \
     soap \
     zip \
+    calendar \
     opcache
 
 # Enable Apache mod_rewrite
@@ -49,8 +50,8 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Configure Apache port for Railway ($PORT)
 RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
 
-# Install composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install composer dependencies with --ignore-platform-reqs
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
