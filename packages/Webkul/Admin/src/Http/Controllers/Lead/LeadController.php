@@ -261,7 +261,9 @@ class LeadController extends Controller
             return redirect()->route('admin.leads.index');
         }
 
-        return view('admin::leads.view', compact('lead'));
+        $allPipelines = $this->pipelineRepository->with('stages')->all();
+
+        return view('admin::leads.view', compact('lead', 'allPipelines'));
     }
 
     /**
@@ -368,6 +370,47 @@ class LeadController extends Controller
 
         return response()->json([
             'message' => trans('admin::app.leads.update-success'),
+        ]);
+    }
+
+    /**
+     * Update the lead pipeline.
+     */
+    public function updatePipeline(int $id)
+    {
+        $this->validate(request(), [
+            'lead_pipeline_id' => 'required',
+        ]);
+
+        $lead = $this->leadRepository->findOrFail($id);
+
+        $this->preventUnauthorizedAccess($lead->user_id);
+
+        $pipeline = $this->pipelineRepository->findOrFail(request()->input('lead_pipeline_id'));
+
+        $stageId = request()->input('lead_pipeline_stage_id');
+
+        if (! $stageId) {
+            $stage = $pipeline->stages()->first();
+            $stageId = $stage?->id;
+        } else {
+            $stage = $pipeline->stages()->where('id', $stageId)->firstOrFail();
+        }
+
+        Event::dispatch('lead.update.before', $id);
+
+        $lead = $this->leadRepository->update([
+            'entity_type' => 'leads',
+            'lead_pipeline_id' => $pipeline->id,
+            'lead_pipeline_stage_id' => $stageId,
+        ], $id, ['lead_pipeline_id', 'lead_pipeline_stage_id']);
+
+        Event::dispatch('lead.update.after', $lead);
+
+        return response()->json([
+            'message' => trans('admin::app.leads.update-success'),
+            'pipeline' => $pipeline->load('stages'),
+            'stage_id' => $stageId,
         ]);
     }
 

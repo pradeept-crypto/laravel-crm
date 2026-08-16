@@ -187,10 +187,11 @@
                                         {!! view_render_event('admin.components.activities.content.activity.item.description.before') !!}
 
                                         <!-- Activity Description -->
-                                        <p
-                                            class="dark:text-white"
+                                        <div
+                                            class="dark:text-white text-sm whitespace-pre-line leading-relaxed"
                                             v-if="activity.comment"
-                                        >@{{ activity.comment }}</p>
+                                            v-html="activity.comment"
+                                        ></div>
 
                                         {!! view_render_event('admin.components.activities.content.activity.item.description.after') !!}
 

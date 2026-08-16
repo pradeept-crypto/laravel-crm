@@ -25,6 +25,7 @@ Route::controller(LeadController::class)->prefix('leads')->group(function () {
     Route::put('attributes/edit/{id}', 'updateAttributes')->name('admin.leads.attributes.update');
 
     Route::put('stage/edit/{id}', 'updateStage')->name('admin.leads.stage.update');
+    Route::put('pipeline/edit/{id}', 'updatePipeline')->name('admin.leads.pipeline.update');
 
     Route::get('search', 'search')->name('admin.leads.search');
 

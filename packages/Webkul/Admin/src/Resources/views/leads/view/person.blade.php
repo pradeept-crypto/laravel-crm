@@ -82,17 +82,25 @@
                         {!! view_render_event('admin.leads.view.person.contact_numbers.before', ['lead' => $lead]) !!}
 
                         @foreach ($lead->person->contact_numbers as $contactNumber)
-                            <div class="flex gap-1">
+                            <div class="flex items-center gap-2">
                                 <a
-                                    class="text-brandColor"
-                                    href="callto:{{ $contactNumber['value'] }}"
+                                    class="text-brandColor hover:underline"
+                                    href="tel:{{ $contactNumber['value'] }}"
                                 >
                                     {{ $contactNumber['value'] }}
                                 </a>
 
-                                <span class="text-gray-500 dark:text-gray-300">
+                                <span class="text-gray-500 dark:text-gray-300 text-xs">
                                     ({{ $contactNumber['label'] }})
                                 </span>
+
+                                <a
+                                    href="tel:{{ $contactNumber['value'] }}"
+                                    class="inline-flex items-center gap-1 rounded bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
+                                    title="Click to Call with VoIP Dialer"
+                                >
+                                    <span>📞 Call</span>
+                                </a>
                             </div>
                         @endforeach
 

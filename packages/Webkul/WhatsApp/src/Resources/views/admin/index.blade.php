@@ -115,7 +115,7 @@
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="display: flex; align-items: center; justify-content: space-between;">
                                         <span style="font-size: 13px; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" class="dark:text-white">
-                                            +@{{ conv.contact_name }}
+                                            @{{ conv.contact_name }}
                                         </span>
                                         <span style="font-size: 10px; color: #9ca3af; flex-shrink: 0;">
                                             @{{ conv.last_time }}
@@ -143,8 +143,11 @@
                                 </div>
 
                                 <div>
-                                    <div style="font-size: 14px; font-weight: 700; color: #111827;" class="dark:text-white">
-                                        +@{{ activeConversation.phone_number }}
+                                    <div style="font-size: 14px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 6px;" class="dark:text-white">
+                                        <span>@{{ activeConversation.contact_name }}</span>
+                                        <span v-if="activeConversation.phone_number && activeConversation.contact_name !== activeConversation.phone_number" style="font-size: 12px; font-weight: 400; color: #6b7280;">
+                                            (+@{{ activeConversation.phone_number }})
+                                        </span>
                                     </div>
                                     <div style="font-size: 11px; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 4px;">
                                         <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>

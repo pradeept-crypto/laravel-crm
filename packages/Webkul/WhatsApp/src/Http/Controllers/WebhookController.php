@@ -56,8 +56,8 @@ class WebhookController extends Controller
         }
 
         Log::warning('WhatsApp Webhook verification mismatch', [
-            'mode'     => $mode,
-            'token'    => $token,
+            'mode' => $mode,
+            'token' => $token,
             'expected' => $expectedTokens,
         ]);
 
@@ -122,7 +122,7 @@ class WebhookController extends Controller
         }
 
         $signature = $request->header('X-Hub-Signature-256', '');
-        $expected  = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
+        $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
 
         return hash_equals($expected, $signature);
     }

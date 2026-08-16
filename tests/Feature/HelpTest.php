@@ -6,7 +6,7 @@ it('shows the help page to an authenticated admin', function () {
     test()->actingAs($admin)
         ->get(route('admin.help.index'))
         ->assertOk()
-        ->assertSee('Help & Resources')
+        ->assertSee(trans('admin::app.help.index.title'), false)
         ->assertSee('Cloud Hosting')
         ->assertSee('Extensions')
         ->assertSee('krayincrm.com/cloud-hosting')

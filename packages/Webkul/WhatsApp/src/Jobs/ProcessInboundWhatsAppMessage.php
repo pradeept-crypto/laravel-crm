@@ -79,7 +79,7 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
 
         [$leadId, $personId] = $this->resolveContact($leadRepository, $personRepository, $pipelineRepository, $from, $contactName);
 
-        WhatsAppMessage::create([
+        $waMsg = WhatsAppMessage::create([
             'lead_id' => $leadId,
             'person_id' => $personId,
             'wa_message_id' => $this->message['id'] ?? null,
@@ -95,6 +95,28 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
                 ? date('Y-m-d H:i:s', (int) $this->message['timestamp'])
                 : now(),
         ]);
+
+        if ($leadId) {
+            $snippet = mb_strimwidth($body ?: ($type . ' attachment'), 0, 60, '...');
+            $activity = app(\Webkul\Activity\Repositories\ActivityRepository::class)->create([
+                'title'         => "💬 WhatsApp Message: {$snippet}",
+                'type'          => 'note',
+                'comment'       => "<strong>WhatsApp from +{$from}:</strong><br>" . nl2br(e($body ?: "[{$type}]")),
+                'additional'    => json_encode(['wa_message_id' => $this->message['id'] ?? null, 'from' => $from]),
+                'schedule_from' => now(),
+                'schedule_to'   => now(),
+                'is_done'       => 1,
+                'user_id'       => 1,
+            ]);
+
+            if (method_exists($activity, 'leads')) {
+                $activity->leads()->syncWithoutDetaching([$leadId]);
+            }
+
+            if ($personId && method_exists($activity, 'persons')) {
+                $activity->persons()->syncWithoutDetaching([$personId]);
+            }
+        }
     }
 
     /**

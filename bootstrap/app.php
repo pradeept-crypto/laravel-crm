@@ -27,6 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin/web-forms/forms/*',
             'webhook/whatsapp',
             'webhook/whatsapp/*',
+            'webhook/voip',
+            'webhook/voip/*',
+            'api/*',
         ]);
 
         $middleware->api(prepend: [
