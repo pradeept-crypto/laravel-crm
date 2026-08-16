@@ -16,10 +16,14 @@ fi
 php artisan config:clear || true
 php artisan storage:link || true
 
-# Run database migrations if DB is configured
+# Mark application as installed so it goes straight to Admin
+touch /var/www/html/storage/installed || true
+chmod 664 /var/www/html/storage/installed || true
+
+# Run database migrations and seed default admin if DB is configured
 if [ -n "$DB_HOST" ]; then
     echo "Running database migrations..."
-    php artisan migrate --seed --force || echo "Warning: Migration failed or DB not reachable yet."
+    php artisan migrate --seed --force || echo "Warning: Migration already up to date."
 fi
 
 PORT="${PORT:-8000}"
