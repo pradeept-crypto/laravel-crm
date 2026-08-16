@@ -15,12 +15,13 @@ fi
 [ -n "$DB_USERNAME" ] && sed -i "s|^DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME}|g" /var/www/html/.env || true
 [ -n "$DB_PASSWORD" ] && sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|g" /var/www/html/.env || true
 [ -n "$APP_URL" ] && sed -i "s|^APP_URL=.*|APP_URL=${APP_URL}|g" /var/www/html/.env || true
-[ -n "$APP_KEY" ] && sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|g" /var/www/html/.env || true
 [ -n "$WHATSAPP_PHONE_NUMBER_ID" ] && sed -i "s|^WHATSAPP_PHONE_NUMBER_ID=.*|WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID}|g" /var/www/html/.env || true
 [ -n "$WHATSAPP_ACCESS_TOKEN" ] && sed -i "s|^WHATSAPP_ACCESS_TOKEN=.*|WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}|g" /var/www/html/.env || true
 
-# Ensure APP_KEY is generated if missing
-if ! grep -q "APP_KEY=base64:" /var/www/html/.env; then
+# Always ensure a valid 32-byte APP_KEY exists
+if [ -n "$APP_KEY" ] && [ ${#APP_KEY} -ge 50 ]; then
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|g" /var/www/html/.env || true
+else
     php artisan key:generate --force || true
 fi
 
