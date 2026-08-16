@@ -50,8 +50,8 @@ RUN chmod +x docker-entrypoint.sh \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Default port
-ENV PORT=8000
-EXPOSE 8000
+# Default port matching Railway routing
+ENV PORT=8080
+EXPOSE 8080
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

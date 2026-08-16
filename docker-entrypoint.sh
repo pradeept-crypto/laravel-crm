@@ -26,6 +26,6 @@ if [ -n "$DB_HOST" ]; then
     php artisan migrate --seed --force || echo "Warning: Migration already up to date."
 fi
 
-PORT="${PORT:-8000}"
+PORT="${PORT:-8080}"
 echo "AUURA CRM server running on port $PORT..."
 exec php artisan serve --host=0.0.0.0 --port="$PORT"
