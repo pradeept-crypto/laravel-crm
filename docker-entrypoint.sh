@@ -1,9 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "Starting AUURA CRM..."
+echo "Starting AUURA CRM on Railway..."
 
-# Generate app key if missing
+# Ensure .env exists
+if [ ! -f /var/www/html/.env ]; then
+    cp /var/www/html/.env.example /var/www/html/.env || true
+fi
+
+# Ensure APP_KEY is generated
 if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force || true
 fi
@@ -11,11 +16,12 @@ fi
 php artisan config:clear || true
 php artisan storage:link || true
 
-# Attempt migrations safely if DB_HOST is configured
+# Run database migrations if DB is configured
 if [ -n "$DB_HOST" ]; then
     echo "Running database migrations..."
-    php artisan migrate --force || echo "Warning: Migration failed or DB not reachable yet."
+    php artisan migrate --seed --force || echo "Warning: Migration failed or DB not reachable yet."
 fi
 
-echo "Starting Apache web server..."
-exec apache2-foreground
+PORT="${PORT:-8000}"
+echo "AUURA CRM server running on port $PORT..."
+exec php artisan serve --host=0.0.0.0 --port="$PORT"

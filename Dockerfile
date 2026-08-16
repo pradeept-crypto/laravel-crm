@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.3-cli
 
 # Install system libraries for PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure and install PHP extensions including calendar, gd, zip, intl, pdo_mysql
+# Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
@@ -30,9 +30,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     calendar \
     opcache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -42,15 +39,10 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Set Apache document root to Laravel /public
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Copy .env.example to .env
+RUN cp .env.example .env
 
-# Configure Apache port for Railway ($PORT)
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
-
-# Install composer dependencies with --ignore-platform-reqs
+# Install composer dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Set permissions
@@ -59,8 +51,7 @@ RUN chmod +x docker-entrypoint.sh \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Default port
-ENV PORT=80
-EXPOSE 80
+ENV PORT=8000
+EXPOSE 8000
 
-# Run entrypoint
 ENTRYPOINT ["./docker-entrypoint.sh"]
