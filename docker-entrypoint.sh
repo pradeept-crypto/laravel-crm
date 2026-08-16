@@ -50,10 +50,10 @@ php artisan storage:link || true
 touch /var/www/html/storage/installed || true
 chmod 664 /var/www/html/storage/installed || true
 
-# Run database migrations and seed default admin if DB is configured
+# Run database migrations without overwriting users
 if [ -n "$DB_HOST" ] && [ "$DB_HOST" != "127.0.0.1" ]; then
     echo "Running database migrations on ${DB_HOST}..."
-    php artisan migrate --seed --force || echo "Warning: Migration already up to date or failed."
+    php artisan migrate --force || echo "Warning: Migration already up to date or failed."
 fi
 
 PORT="${PORT:-8080}"
