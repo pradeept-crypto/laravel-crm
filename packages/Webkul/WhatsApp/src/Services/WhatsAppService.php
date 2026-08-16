@@ -24,10 +24,10 @@ class WhatsAppService
     {
         return $this->post('/messages', [
             'messaging_product' => 'whatsapp',
-            'recipient_type'    => 'individual',
-            'to'                => $this->normalizeNumber($to),
-            'type'              => 'text',
-            'text'              => ['body' => $body],
+            'recipient_type' => 'individual',
+            'to' => $this->normalizeNumber($to),
+            'type' => 'text',
+            'text' => ['body' => $body],
         ]);
     }
 
@@ -38,11 +38,11 @@ class WhatsAppService
     {
         $payload = [
             'messaging_product' => 'whatsapp',
-            'recipient_type'    => 'individual',
-            'to'                => $this->normalizeNumber($to),
-            'type'              => 'template',
-            'template'          => [
-                'name'     => $templateName,
+            'recipient_type' => 'individual',
+            'to' => $this->normalizeNumber($to),
+            'type' => 'template',
+            'template' => [
+                'name' => $templateName,
                 'language' => ['code' => $languageCode],
             ],
         ];
@@ -67,10 +67,10 @@ class WhatsAppService
 
         return $this->post('/messages', [
             'messaging_product' => 'whatsapp',
-            'recipient_type'    => 'individual',
-            'to'                => $this->normalizeNumber($to),
-            'type'              => $type,
-            $type               => $mediaObject,
+            'recipient_type' => 'individual',
+            'to' => $this->normalizeNumber($to),
+            'type' => $type,
+            $type => $mediaObject,
         ]);
     }
 
@@ -81,8 +81,8 @@ class WhatsAppService
     {
         return $this->post('/messages', [
             'messaging_product' => 'whatsapp',
-            'status'            => 'read',
-            'message_id'        => $waMessageId,
+            'status' => 'read',
+            'message_id' => $waMessageId,
         ]);
     }
 
@@ -131,14 +131,14 @@ class WhatsAppService
 
         if ($response->failed()) {
             Log::error('WhatsApp API error', [
-                'payload'  => $payload,
+                'payload' => $payload,
                 'response' => $response->json(),
-                'status'   => $response->status(),
+                'status' => $response->status(),
             ]);
         }
 
         return [
-            'ok'   => $response->successful(),
+            'ok' => $response->successful(),
             'body' => $response->json(),
         ];
     }
