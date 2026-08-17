@@ -10,7 +10,8 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force 2>/dev/null || true
 fi
 
-# Clear configuration cache so all Railway env vars are live
+# Discover packages and clear configuration cache
+php artisan package:discover --ansi 2>/dev/null || true
 php artisan config:clear 2>/dev/null || true
 php artisan cache:clear 2>/dev/null || true
 php artisan storage:link 2>/dev/null || true

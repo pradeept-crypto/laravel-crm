@@ -42,8 +42,9 @@ COPY . .
 # Copy .env.example to .env
 RUN cp .env.example .env
 
-# Install composer dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+# Install composer dependencies safely without running pre-boot artisan scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-reqs \
+    && composer dump-autoload --optimize --no-scripts
 
 # Set permissions
 RUN chmod +x docker-entrypoint.sh \
