@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Webkul\Email\InboundEmailProcessor\WebklexImapEmailProcessor;
+use Webkul\Email\Repositories\AttachmentRepository;
+use Webkul\Email\Repositories\EmailRepository;
 use Webkul\WhatsApp\Http\Controllers\WebhookController;
 
 /*
@@ -28,12 +30,15 @@ Route::get('/webhook/test-imap', function () {
         $username = core()->getConfigData('email.imap.account.username') ?: config('imap.accounts.default.username');
         $password = core()->getConfigData('email.imap.account.password') ?: config('imap.accounts.default.password');
 
-        $processor = app(WebklexImapEmailProcessor::class);
+        $emailRepo = app(EmailRepository::class);
+        $attachRepo = app(AttachmentRepository::class);
+        $processor = new WebklexImapEmailProcessor($emailRepo, $attachRepo);
         $processor->processMessagesFromAllFolders();
 
         return response()->json([
             'status' => 'success',
             'message' => 'IMAP connected and processed messages successfully!',
+            'build' => 'v3-direct-instantiation',
             'config' => [
                 'host' => $host,
                 'port' => $port,
@@ -47,6 +52,7 @@ Route::get('/webhook/test-imap', function () {
             'status' => 'error',
             'error_message' => $e->getMessage(),
             'error_class' => get_class($e),
+            'build' => 'v3-direct-instantiation',
             'config' => [
                 'host' => core()->getConfigData('email.imap.account.host'),
                 'port' => core()->getConfigData('email.imap.account.port'),
