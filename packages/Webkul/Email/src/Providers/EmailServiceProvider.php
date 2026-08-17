@@ -20,17 +20,13 @@ class EmailServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
         $this->app->bind(InboundEmailProcessor::class, function ($app) {
-            $driver = config('mail-receiver.default');
+            $driver = getenv('MAIL_RECEIVER_DRIVER') ?: config('mail-receiver.default', 'webklex-imap');
 
             if ($driver === 'sendgrid') {
                 return $app->make(SendgridEmailProcessor::class);
             }
 
-            if ($driver === 'webklex-imap') {
-                return $app->make(WebklexImapEmailProcessor::class);
-            }
-
-            throw new \Exception("Unsupported mail receiver driver [{$driver}].");
+            return $app->make(WebklexImapEmailProcessor::class);
         });
     }
 
