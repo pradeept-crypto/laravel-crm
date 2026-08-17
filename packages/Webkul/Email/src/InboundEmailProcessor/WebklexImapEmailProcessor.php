@@ -110,14 +110,15 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
          *
          * To Do: Review this.
          */
-        $folderName = match ($message->getFolder()->name) {
-            'INBOX' => SupportedFolderEnum::INBOX->value,
-            'Important' => SupportedFolderEnum::IMPORTANT->value,
-            'Starred' => SupportedFolderEnum::STARRED->value,
-            'Drafts' => SupportedFolderEnum::DRAFT->value,
-            'Sent Mail' => SupportedFolderEnum::SENT->value,
-            'Trash' => SupportedFolderEnum::TRASH->value,
-            default => '',
+        $rawFolderName = strtolower((string) $message->getFolder()->name);
+        $folderName = match (true) {
+            str_contains($rawFolderName, 'inbox') => SupportedFolderEnum::INBOX->value,
+            str_contains($rawFolderName, 'important') => SupportedFolderEnum::IMPORTANT->value,
+            str_contains($rawFolderName, 'starred') => SupportedFolderEnum::STARRED->value,
+            str_contains($rawFolderName, 'draft') => SupportedFolderEnum::DRAFT->value,
+            str_contains($rawFolderName, 'sent') => SupportedFolderEnum::SENT->value,
+            str_contains($rawFolderName, 'trash') || str_contains($rawFolderName, 'bin') => SupportedFolderEnum::TRASH->value,
+            default => SupportedFolderEnum::INBOX->value,
         };
 
         $parentEmail = null;

@@ -27,6 +27,7 @@ $vars = [
     'WHATSAPP_ACCESS_TOKEN' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
     'WHATSAPP_VERIFY_TOKEN' => getenv('WHATSAPP_VERIFY_TOKEN') ?: '',
     'WHATSAPP_AUTO_CREATE_LEAD' => 'true',
+    'MAIL_RECEIVER_DRIVER' => 'webklex-imap',
     'MAIL_MAILER' => getenv('MAIL_MAILER') ?: 'brevo',
     'BREVO_API_KEY' => getenv('BREVO_API_KEY') ?: (getenv('MAIL_PASSWORD') ?: ''),
     'MAIL_HOST' => getenv('MAIL_HOST') ?: 'smtp-relay.brevo.com',
