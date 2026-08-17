@@ -154,9 +154,10 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         $parentEmail = null;
 
         if ($email) {
+            $existingFolders = is_array($email->folders) ? $email->folders : (json_decode($email->folders, true) ?: []);
             $parentEmail = $this->emailRepository->update([
-                'folders' => array_unique(array_merge($email->folders, [$folderName])),
-                'reference_ids' => array_merge($email->reference_ids ?? [], [$references]),
+                'folders' => array_values(array_unique(array_merge($existingFolders, [$folderName]))),
+                'reference_ids' => array_values(array_unique(array_merge($email->reference_ids ?? [], $references))),
             ], $email->id);
         }
 
@@ -201,16 +202,14 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
                 return;
             }
 
-            if (in_array($folder->name, ['All Mail', '[Gmail]/All Mail', '[Gmail]/Spam', 'Spam'])) {
+            $folderLower = strtolower((string) $folder->name);
+            if (str_contains($folderLower, 'all mail') || str_contains($folderLower, 'spam') || str_contains($folderLower, 'trash')) {
                 return;
             }
 
             try {
-                $messages = $folder->query()->since(now()->subDays(30))->get();
-
-                if ($messages->isEmpty()) {
-                    $messages = $folder->query()->all()->limit(25)->get();
-                }
+                // Fetch recent messages
+                $messages = $folder->messages()->all()->setFetchBody(true)->limit(50)->get();
 
                 $messages->each(function ($message) {
                     try {
