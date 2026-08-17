@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -131,7 +132,7 @@ class EmailController extends Controller
                     'folders' => [SupportedFolderEnum::SENT->value],
                 ], $email->id);
             } catch (Exception $e) {
-                \Illuminate\Support\Facades\Log::error('SMTP Mail Send Error: '.$e->getMessage());
+                Log::error('SMTP Mail Send Error: '.$e->getMessage());
             }
         }
 

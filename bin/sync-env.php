@@ -12,29 +12,30 @@ if (! file_exists($envPath)) {
 }
 
 $vars = [
-    'DB_CONNECTION'            => 'mysql',
-    'DB_HOST'                  => getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: 'mysql.railway.internal',
-    'DB_PORT'                  => getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306',
-    'DB_DATABASE'              => getenv('DB_DATABASE') ?: getenv('MYSQLDATABASE') ?: 'railway',
-    'DB_USERNAME'              => getenv('DB_USERNAME') ?: getenv('MYSQLUSER') ?: 'root',
-    'DB_PASSWORD'              => getenv('DB_PASSWORD') ?: getenv('MYSQLPASSWORD') ?: '',
-    'DATABASE_URL'             => getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: '',
-    'APP_KEY'                  => getenv('APP_KEY') ?: '',
-    'APP_URL'                  => getenv('APP_URL') ?: 'https://laravel-crm-production-baa6.up.railway.app',
-    'APP_ENV'                  => 'production',
-    'APP_DEBUG'                => 'false',
+    'DB_CONNECTION' => 'mysql',
+    'DB_HOST' => getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: 'mysql.railway.internal',
+    'DB_PORT' => getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306',
+    'DB_DATABASE' => getenv('DB_DATABASE') ?: getenv('MYSQLDATABASE') ?: 'railway',
+    'DB_USERNAME' => getenv('DB_USERNAME') ?: getenv('MYSQLUSER') ?: 'root',
+    'DB_PASSWORD' => getenv('DB_PASSWORD') ?: getenv('MYSQLPASSWORD') ?: '',
+    'DATABASE_URL' => getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: '',
+    'APP_KEY' => getenv('APP_KEY') ?: '',
+    'APP_URL' => getenv('APP_URL') ?: 'https://laravel-crm-production-baa6.up.railway.app',
+    'APP_ENV' => 'production',
+    'APP_DEBUG' => 'false',
     'WHATSAPP_PHONE_NUMBER_ID' => getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '',
-    'WHATSAPP_ACCESS_TOKEN'    => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
-    'WHATSAPP_VERIFY_TOKEN'    => getenv('WHATSAPP_VERIFY_TOKEN') ?: '',
-    'WHATSAPP_AUTO_CREATE_LEAD'=> 'true',
-    'MAIL_MAILER'              => getenv('MAIL_MAILER') ?: 'smtp',
-    'MAIL_HOST'                => getenv('MAIL_HOST') ?: '',
-    'MAIL_PORT'                => getenv('MAIL_PORT') ?: '587',
-    'MAIL_USERNAME'            => getenv('MAIL_USERNAME') ?: '',
-    'MAIL_PASSWORD'            => getenv('MAIL_PASSWORD') ?: '',
-    'MAIL_ENCRYPTION'          => getenv('MAIL_ENCRYPTION') ?: 'tls',
-    'MAIL_FROM_ADDRESS'        => getenv('MAIL_FROM_ADDRESS') ?: '',
-    'MAIL_FROM_NAME'           => getenv('MAIL_FROM_NAME') ?: 'AUURA CRM',
+    'WHATSAPP_ACCESS_TOKEN' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
+    'WHATSAPP_VERIFY_TOKEN' => getenv('WHATSAPP_VERIFY_TOKEN') ?: '',
+    'WHATSAPP_AUTO_CREATE_LEAD' => 'true',
+    'MAIL_MAILER' => getenv('MAIL_MAILER') ?: 'brevo',
+    'BREVO_API_KEY' => getenv('BREVO_API_KEY') ?: (getenv('MAIL_PASSWORD') ?: ''),
+    'MAIL_HOST' => getenv('MAIL_HOST') ?: 'smtp-relay.brevo.com',
+    'MAIL_PORT' => getenv('MAIL_PORT') ?: '587',
+    'MAIL_USERNAME' => getenv('MAIL_USERNAME') ?: '',
+    'MAIL_PASSWORD' => getenv('MAIL_PASSWORD') ?: '',
+    'MAIL_ENCRYPTION' => getenv('MAIL_ENCRYPTION') ?: 'tls',
+    'MAIL_FROM_ADDRESS' => getenv('MAIL_FROM_ADDRESS') ?: '',
+    'MAIL_FROM_NAME' => getenv('MAIL_FROM_NAME') ?: 'AUURA CRM',
 ];
 
 $lines = file_exists($envPath) ? file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
@@ -61,10 +62,10 @@ $output = [];
 foreach ($existing as $k => $v) {
     // If value contains spaces, wrap in quotes
     if (str_contains($v, ' ') && ! str_starts_with($v, '"') && ! str_starts_with($v, "'")) {
-        $v = '"' . $v . '"';
+        $v = '"'.$v.'"';
     }
     $output[] = "{$k}={$v}";
 }
 
-file_put_contents($envPath, implode("\n", $output) . "\n");
+file_put_contents($envPath, implode("\n", $output)."\n");
 echo "Environment synchronized to .env successfully.\n";
