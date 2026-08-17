@@ -150,6 +150,23 @@ class WebFormController extends Controller
                     $activity->persons()->syncWithoutDetaching([$person->id]);
                 }
 
+                // Update existing lead custom attributes with newly submitted form values
+                $fieldsToUpdate = array_filter($formPayload, function ($val, $key) {
+                    return ! in_array($key, ['entity_type', 'status', 'person']) && $val !== null && $val !== '';
+                }, ARRAY_FILTER_USE_BOTH);
+
+                if (! empty($fieldsToUpdate)) {
+                    $submittedCodes = array_keys($fieldsToUpdate);
+                    $targetAttributes = $this->attributeRepository->findWhereIn('code', $submittedCodes)
+                        ->where('entity_type', 'leads');
+
+                    $updateData = array_merge($fieldsToUpdate, [
+                        'entity_type' => 'leads',
+                    ]);
+
+                    $this->leadRepository->update($updateData, $existingLead->id, $targetAttributes);
+                }
+
                 $existingLead->touch();
             } else {
                 request()->request->add(['entity_type' => 'leads']);
