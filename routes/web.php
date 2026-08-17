@@ -5,7 +5,7 @@ use Webkul\Admin\Http\Controllers\Api\VoIPWebhookController;
 
 Route::post('webhook/voip/call-log', [VoIPWebhookController::class, 'logCall'])->name('webhook.voip.call_log');
 
-Route::get('admin/test-email', function () {
+Route::get('test-email', function () {
     try {
         $to = request('to', 'saravanan.sr@kaditinnovations.com');
         $host = config('mail.mailers.smtp.host');
