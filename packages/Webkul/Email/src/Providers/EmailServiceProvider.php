@@ -17,10 +17,6 @@ class EmailServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
-
-        $this->app->bind(InboundEmailProcessor::class, function ($app) {
-            return $app->make(WebklexImapEmailProcessor::class);
-        });
     }
 
     /**
@@ -31,6 +27,10 @@ class EmailServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerCommands();
+
+        $this->app->bind(InboundEmailProcessor::class, function ($app) {
+            return $app->make(WebklexImapEmailProcessor::class);
+        });
     }
 
     /**

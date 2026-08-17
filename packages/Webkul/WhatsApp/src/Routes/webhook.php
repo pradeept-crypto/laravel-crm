@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor;
+use Webkul\Email\InboundEmailProcessor\WebklexImapEmailProcessor;
 use Webkul\WhatsApp\Http\Controllers\WebhookController;
 
 /*
@@ -28,7 +28,7 @@ Route::get('/webhook/test-imap', function () {
         $username = core()->getConfigData('email.imap.account.username') ?: config('imap.accounts.default.username');
         $password = core()->getConfigData('email.imap.account.password') ?: config('imap.accounts.default.password');
 
-        $processor = app(InboundEmailProcessor::class);
+        $processor = app(WebklexImapEmailProcessor::class);
         $processor->processMessagesFromAllFolders();
 
         return response()->json([
