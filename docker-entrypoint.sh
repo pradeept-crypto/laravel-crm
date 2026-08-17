@@ -35,6 +35,16 @@ sed -i '/^DB_PASSWORD=$/d' /var/www/html/.env 2>/dev/null || true
 [ -n "$WHATSAPP_ACCESS_TOKEN" ] && (grep -q "^WHATSAPP_ACCESS_TOKEN=" /var/www/html/.env && sed -i "s|^WHATSAPP_ACCESS_TOKEN=.*|WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}|g" /var/www/html/.env || echo "WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}" >> /var/www/html/.env) || true
 [ -n "$WHATSAPP_VERIFY_TOKEN" ] && (grep -q "^WHATSAPP_VERIFY_TOKEN=" /var/www/html/.env && sed -i "s|^WHATSAPP_VERIFY_TOKEN=.*|WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}|g" /var/www/html/.env || echo "WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}" >> /var/www/html/.env) || true
 
+# Sync SMTP Mail variables
+[ -n "$MAIL_MAILER" ] && (grep -q "^MAIL_MAILER=" /var/www/html/.env && sed -i "s|^MAIL_MAILER=.*|MAIL_MAILER=${MAIL_MAILER}|g" /var/www/html/.env || echo "MAIL_MAILER=${MAIL_MAILER}" >> /var/www/html/.env) || true
+[ -n "$MAIL_HOST" ] && (grep -q "^MAIL_HOST=" /var/www/html/.env && sed -i "s|^MAIL_HOST=.*|MAIL_HOST=${MAIL_HOST}|g" /var/www/html/.env || echo "MAIL_HOST=${MAIL_HOST}" >> /var/www/html/.env) || true
+[ -n "$MAIL_PORT" ] && (grep -q "^MAIL_PORT=" /var/www/html/.env && sed -i "s|^MAIL_PORT=.*|MAIL_PORT=${MAIL_PORT}|g" /var/www/html/.env || echo "MAIL_PORT=${MAIL_PORT}" >> /var/www/html/.env) || true
+[ -n "$MAIL_USERNAME" ] && (grep -q "^MAIL_USERNAME=" /var/www/html/.env && sed -i "s|^MAIL_USERNAME=.*|MAIL_USERNAME=${MAIL_USERNAME}|g" /var/www/html/.env || echo "MAIL_USERNAME=${MAIL_USERNAME}" >> /var/www/html/.env) || true
+[ -n "$MAIL_PASSWORD" ] && (grep -q "^MAIL_PASSWORD=" /var/www/html/.env && sed -i "s|^MAIL_PASSWORD=.*|MAIL_PASSWORD=${MAIL_PASSWORD}|g" /var/www/html/.env || echo "MAIL_PASSWORD=${MAIL_PASSWORD}" >> /var/www/html/.env) || true
+[ -n "$MAIL_ENCRYPTION" ] && (grep -q "^MAIL_ENCRYPTION=" /var/www/html/.env && sed -i "s|^MAIL_ENCRYPTION=.*|MAIL_ENCRYPTION=${MAIL_ENCRYPTION}|g" /var/www/html/.env || echo "MAIL_ENCRYPTION=${MAIL_ENCRYPTION}" >> /var/www/html/.env) || true
+[ -n "$MAIL_FROM_ADDRESS" ] && (grep -q "^MAIL_FROM_ADDRESS=" /var/www/html/.env && sed -i "s|^MAIL_FROM_ADDRESS=.*|MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}|g" /var/www/html/.env || echo "MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}" >> /var/www/html/.env) || true
+[ -n "$MAIL_FROM_NAME" ] && (grep -q "^MAIL_FROM_NAME=" /var/www/html/.env && sed -i "s|^MAIL_FROM_NAME=.*|MAIL_FROM_NAME=\"${MAIL_FROM_NAME}\"|g" /var/www/html/.env || echo "MAIL_FROM_NAME=\"${MAIL_FROM_NAME}\"" >> /var/www/html/.env) || true
+
 # Always ensure a valid 32-byte APP_KEY exists
 if [ -n "$APP_KEY" ] && [ ${#APP_KEY} -ge 50 ]; then
     grep -q "^APP_KEY=" /var/www/html/.env && sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|g" /var/www/html/.env || echo "APP_KEY=${APP_KEY}" >> /var/www/html/.env
@@ -55,6 +65,9 @@ if [ -n "$DB_HOST" ] && [ "$DB_HOST" != "127.0.0.1" ]; then
     echo "Running database migrations on ${DB_HOST}..."
     php artisan migrate --force || echo "Warning: Migration already up to date or failed."
 fi
+
+# Run background scheduler for IMAP inbound email processing
+php artisan schedule:work &
 
 PORT="${PORT:-8080}"
 echo "AUURA CRM server running on port $PORT..."
