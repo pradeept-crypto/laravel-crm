@@ -7,6 +7,12 @@ if [ ! -f /var/www/html/.env ]; then
     cp /var/www/html/.env.example /var/www/html/.env 2>/dev/null || true
 fi
 
+# Remove empty placeholder lines that might shadow real environment variables
+sed -i '/^DB_HOST=$/d' /var/www/html/.env 2>/dev/null || true
+sed -i '/^DB_DATABASE=$/d' /var/www/html/.env 2>/dev/null || true
+sed -i '/^DB_USERNAME=$/d' /var/www/html/.env 2>/dev/null || true
+sed -i '/^DB_PASSWORD=$/d' /var/www/html/.env 2>/dev/null || true
+
 # Ensure production DB_HOST defaults to mysql.railway.internal
 DB_HOST="${DB_HOST:-$MYSQLHOST}"
 if [ -z "$DB_HOST" ] || [ "$DB_HOST" = "127.0.0.1" ]; then

@@ -45,12 +45,12 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
-            'url' => (env('DATABASE_URL') ?: env('MYSQL_URL')) ?: null,
-            'host' => (env('DB_HOST') ?: env('MYSQLHOST')) ?: (env('APP_ENV') === 'production' ? 'mysql.railway.internal' : '127.0.0.1'),
-            'port' => (env('DB_PORT') ?: env('MYSQLPORT')) ?: '3306',
-            'database' => (env('DB_DATABASE') ?: env('MYSQLDATABASE')) ?: 'railway',
-            'username' => (env('DB_USERNAME') ?: env('MYSQLUSER')) ?: 'root',
-            'password' => (env('DB_PASSWORD') ?: env('MYSQLPASSWORD')) ?: '',
+            'url' => getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: env('DATABASE_URL'),
+            'host' => getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: (env('DB_HOST') ?: (env('APP_ENV') === 'production' ? 'mysql.railway.internal' : '127.0.0.1')),
+            'port' => getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: env('DB_PORT', '3306'),
+            'database' => getenv('DB_DATABASE') ?: getenv('MYSQLDATABASE') ?: (env('DB_DATABASE') ?: 'railway'),
+            'username' => getenv('DB_USERNAME') ?: getenv('MYSQLUSER') ?: (env('DB_USERNAME') ?: 'root'),
+            'password' => getenv('DB_PASSWORD') ?: getenv('MYSQLPASSWORD') ?: (env('DB_PASSWORD') ?: ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
