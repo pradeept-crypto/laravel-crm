@@ -18,3 +18,39 @@ Route::get('/webhook/whatsapp', [WebhookController::class, 'verify'])
 
 Route::post('/webhook/whatsapp', [WebhookController::class, 'handle'])
     ->name('whatsapp.webhook.handle');
+
+Route::get('/webhook/test-imap', function () {
+    try {
+        $host = core()->getConfigData('email.imap.account.host') ?: config('imap.accounts.default.host');
+        $port = core()->getConfigData('email.imap.account.port') ?: config('imap.accounts.default.port');
+        $encryption = core()->getConfigData('email.imap.account.encryption') ?: config('imap.accounts.default.encryption');
+        $username = core()->getConfigData('email.imap.account.username') ?: config('imap.accounts.default.username');
+        $password = core()->getConfigData('email.imap.account.password') ?: config('imap.accounts.default.password');
+
+        $processor = app(\Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor::class);
+        $processor->processMessagesFromAllFolders();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'IMAP connected and processed messages successfully!',
+            'config' => [
+                'host' => $host,
+                'port' => $port,
+                'encryption' => $encryption,
+                'username' => $username,
+                'has_password' => ! empty($password),
+            ],
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'error_message' => $e->getMessage(),
+            'error_class' => get_class($e),
+            'config' => [
+                'host' => core()->getConfigData('email.imap.account.host'),
+                'port' => core()->getConfigData('email.imap.account.port'),
+                'username' => core()->getConfigData('email.imap.account.username'),
+            ],
+        ], 500);
+    }
+});
