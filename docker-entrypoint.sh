@@ -7,6 +7,12 @@ if [ ! -f /var/www/html/.env ]; then
     cp /var/www/html/.env.example /var/www/html/.env 2>/dev/null || true
 fi
 
+# Ensure production DB_HOST defaults to mysql.railway.internal
+DB_HOST="${DB_HOST:-$MYSQLHOST}"
+if [ -z "$DB_HOST" ] || [ "$DB_HOST" = "127.0.0.1" ]; then
+    DB_HOST="mysql.railway.internal"
+fi
+
 # Ensure APP_KEY exists
 if [ -n "$APP_KEY" ] && [ ${#APP_KEY} -ge 40 ]; then
     grep -q "^APP_KEY=" /var/www/html/.env && sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY}|g" /var/www/html/.env || echo "APP_KEY=${APP_KEY}" >> /var/www/html/.env
@@ -25,7 +31,7 @@ chmod 664 /var/www/html/storage/installed 2>/dev/null || true
 
 # Run database migrations
 if [ -n "$DB_HOST" ] && [ "$DB_HOST" != "127.0.0.1" ]; then
-    echo "Running database migrations..."
+    echo "Running database migrations on ${DB_HOST}..."
     php artisan migrate --force 2>/dev/null || true
 fi
 
