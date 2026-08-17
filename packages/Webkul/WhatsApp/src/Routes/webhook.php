@@ -22,15 +22,26 @@ Route::post('/webhook/whatsapp', [WebhookController::class, 'handle'])
 Route::get('/webhook/test-email', function () {
     try {
         $to = request('to', 'saravanan.sr@kaditinnovations.com');
-        $host = config('mail.mailers.smtp.host');
-        $port = config('mail.mailers.smtp.port');
-        $encryption = config('mail.mailers.smtp.encryption');
+        $host = request('host') ?: (config('mail.mailers.smtp.host') ?: 'smtp.gmail.com');
+        $port = (int) (request('port') ?: (config('mail.mailers.smtp.port') ?: 587));
+        $encryption = request('encryption') ?: (config('mail.mailers.smtp.encryption') ?: 'tls');
         $username = config('mail.mailers.smtp.username');
+        $password = config('mail.mailers.smtp.password');
         $from = config('mail.from.address');
 
-        \Illuminate\Support\Facades\Mail::raw("Test email from AUURA CRM to {$to} via {$host}:{$port} ({$encryption}) at " . now(), function ($message) use ($to) {
-            $message->to($to)->subject('AUURA CRM Test Email ' . now());
-        });
+        // Dynamically configure transport for test
+        $transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport($host, $port, $encryption === 'ssl');
+        $transport->setUsername($username);
+        $transport->setPassword($password);
+
+        $mailer = new \Symfony\Component\Mailer\Mailer($transport);
+        $email = (new \Symfony\Component\Mime\Email())
+            ->from(new \Symfony\Component\Mime\Address($from, 'AUURA CRM'))
+            ->to($to)
+            ->subject('AUURA CRM Test Email ' . now())
+            ->text("Test email from AUURA CRM to {$to} via {$host}:{$port} ({$encryption}) at " . now());
+
+        $mailer->send($email);
 
         return response()->json([
             'status' => 'success',
@@ -49,9 +60,9 @@ Route::get('/webhook/test-email', function () {
             'error_message' => $e->getMessage(),
             'error_class' => get_class($e),
             'smtp_config' => [
-                'host' => config('mail.mailers.smtp.host'),
-                'port' => config('mail.mailers.smtp.port'),
-                'encryption' => config('mail.mailers.smtp.encryption'),
+                'host' => request('host') ?: config('mail.mailers.smtp.host'),
+                'port' => request('port') ?: config('mail.mailers.smtp.port'),
+                'encryption' => request('encryption') ?: config('mail.mailers.smtp.encryption'),
                 'username' => config('mail.mailers.smtp.username'),
                 'from' => config('mail.from.address'),
             ]
