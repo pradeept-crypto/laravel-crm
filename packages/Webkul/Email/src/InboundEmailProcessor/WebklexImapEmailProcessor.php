@@ -28,7 +28,11 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         protected EmailRepository $emailRepository,
         protected AttachmentRepository $attachmentRepository
     ) {
-        $this->client = Client::make($this->getDefaultConfigs());
+        try {
+            $this->client = Client::make($this->getDefaultConfigs());
+        } catch (\Throwable $e) {
+            Log::warning('IMAP client instantiation skipped: '.$e->getMessage());
+        }
     }
 
     /**
@@ -234,19 +238,27 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
      */
     protected function getDefaultConfigs(): array
     {
-        $defaultConfig = config('imap.accounts.default');
+        $defaultConfig = config('imap.accounts.default') ?: [
+            'host' => 'imap.gmail.com',
+            'port' => 993,
+            'protocol' => 'imap',
+            'encryption' => 'ssl',
+            'validate_cert' => true,
+            'username' => '',
+            'password' => '',
+            'authentication' => null,
+        ];
 
-        $defaultConfig['host'] = core()->getConfigData('email.imap.account.host') ?: $defaultConfig['host'];
-
-        $defaultConfig['port'] = core()->getConfigData('email.imap.account.port') ?: $defaultConfig['port'];
-
-        $defaultConfig['encryption'] = core()->getConfigData('email.imap.account.encryption') ?: $defaultConfig['encryption'];
-
-        $defaultConfig['validate_cert'] = (bool) core()->getConfigData('email.imap.account.validate_cert');
-
-        $defaultConfig['username'] = core()->getConfigData('email.imap.account.username') ?: $defaultConfig['username'];
-
-        $defaultConfig['password'] = core()->getConfigData('email.imap.account.password') ?: $defaultConfig['password'];
+        try {
+            $defaultConfig['host'] = core()->getConfigData('email.imap.account.host') ?: ($defaultConfig['host'] ?? 'imap.gmail.com');
+            $defaultConfig['port'] = core()->getConfigData('email.imap.account.port') ?: ($defaultConfig['port'] ?? 993);
+            $defaultConfig['encryption'] = core()->getConfigData('email.imap.account.encryption') ?: ($defaultConfig['encryption'] ?? 'ssl');
+            $defaultConfig['validate_cert'] = (bool) (core()->getConfigData('email.imap.account.validate_cert') ?? true);
+            $defaultConfig['username'] = core()->getConfigData('email.imap.account.username') ?: ($defaultConfig['username'] ?? '');
+            $defaultConfig['password'] = core()->getConfigData('email.imap.account.password') ?: ($defaultConfig['password'] ?? '');
+        } catch (\Throwable) {
+            // Safe fallback if database is loading
+        }
 
         return $defaultConfig;
     }
