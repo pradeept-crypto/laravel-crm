@@ -51,6 +51,14 @@ class EmailController extends Controller
             abort(401, trans('admin::app.mail.unauthorized'));
         }
 
+        if (! request()->ajax() && $route === SupportedFolderEnum::INBOX->value) {
+            try {
+                app(InboundEmailProcessor::class)->processMessagesFromAllFolders();
+            } catch (\Throwable) {
+                // Non-blocking sync
+            }
+        }
+
         if (request()->ajax()) {
             return datagrid(EmailDataGrid::class)->process();
         }

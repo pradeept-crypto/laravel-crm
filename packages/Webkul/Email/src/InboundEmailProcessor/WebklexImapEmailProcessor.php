@@ -109,12 +109,15 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         }
 
         if (! isset($email) && isset($attributes['in_reply_to'])) {
-            $inReplyTo = $attributes['in_reply_to']->first();
+            $inReplyTo = (string) $attributes['in_reply_to']->first();
+            $cleanInReplyTo = trim($inReplyTo, '<>');
 
-            $email = $this->emailRepository->findOneWhere(['message_id' => $inReplyTo]);
+            $email = $this->emailRepository->findOneWhere(['message_id' => $inReplyTo])
+                ?: $this->emailRepository->findOneWhere(['message_id' => $cleanInReplyTo]);
 
             if (! $email) {
-                $email = $this->emailRepository->findOneWhere([['reference_ids', 'like',  '%'.$inReplyTo.'%']]);
+                $email = $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanInReplyTo.'%']])
+                    ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$inReplyTo.'%']]);
             }
         }
 
@@ -124,7 +127,9 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             array_push($references, ...$attributes['references']->all());
 
             foreach ($references as $reference) {
-                if ($email = $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$reference.'%']])) {
+                $cleanRef = trim((string) $reference, '<>');
+                if ($email = $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanRef.'%']])
+                    ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$reference.'%']])) {
                     break;
                 }
             }
@@ -196,13 +201,27 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
                 return;
             }
 
-            if (in_array($folder->name, ['All Mail'])) {
+            if (in_array($folder->name, ['All Mail', '[Gmail]/All Mail', '[Gmail]/Spam', 'Spam'])) {
                 return;
             }
 
-            return $folder->query()->since(now()->subDays(10))->get()->each(function ($message) {
-                $this->processMessage($message);
-            });
+            try {
+                $messages = $folder->query()->since(now()->subDays(30))->get();
+
+                if ($messages->isEmpty()) {
+                    $messages = $folder->query()->all()->limit(25)->get();
+                }
+
+                $messages->each(function ($message) {
+                    try {
+                        $this->processMessage($message);
+                    } catch (\Throwable $e) {
+                        Log::warning('Error processing IMAP message: '.$e->getMessage());
+                    }
+                });
+            } catch (\Throwable $e) {
+                Log::warning('Error fetching IMAP folder '.$folder->name.': '.$e->getMessage());
+            }
         });
     }
 
