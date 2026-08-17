@@ -5,6 +5,7 @@ namespace Webkul\Email\Providers;
 use Illuminate\Support\ServiceProvider;
 use Webkul\Email\Console\Commands\ProcessInboundEmails;
 use Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor;
+use Webkul\Email\InboundEmailProcessor\SendgridEmailProcessor;
 use Webkul\Email\InboundEmailProcessor\WebklexImapEmailProcessor;
 
 class EmailServiceProvider extends ServiceProvider
@@ -29,6 +30,12 @@ class EmailServiceProvider extends ServiceProvider
         $this->registerCommands();
 
         $this->app->bind(InboundEmailProcessor::class, function ($app) {
+            $driver = getenv('MAIL_RECEIVER_DRIVER') ?: config('mail-receiver.default', 'webklex-imap');
+
+            if ($driver === 'sendgrid') {
+                return $app->make(SendgridEmailProcessor::class);
+            }
+
             return $app->make(WebklexImapEmailProcessor::class);
         });
     }

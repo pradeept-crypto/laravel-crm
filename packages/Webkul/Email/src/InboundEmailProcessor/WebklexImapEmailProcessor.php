@@ -3,6 +3,7 @@
 namespace Webkul\Email\InboundEmailProcessor;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Webklex\IMAP\Facades\Client;
 use Webklex\IMAP\Support\FolderCollection;
 use Webklex\PHPIMAP\Message;
@@ -28,11 +29,19 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         protected AttachmentRepository $attachmentRepository
     ) {
         $this->client = Client::make($this->getDefaultConfigs());
+    }
 
-        $this->client->connect();
-
-        if (! $this->client->isConnected()) {
-            throw new \Exception('Failed to connect to the mail server.');
+    /**
+     * Ensure IMAP client is connected.
+     */
+    protected function ensureConnected(): void
+    {
+        try {
+            if (! $this->client->isConnected()) {
+                $this->client->connect();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('IMAP connection failed: '.$e->getMessage());
         }
     }
 
@@ -41,7 +50,13 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
      */
     public function __destruct()
     {
-        $this->client->disconnect();
+        try {
+            if ($this->client && $this->client->isConnected()) {
+                $this->client->disconnect();
+            }
+        } catch (\Throwable) {
+            // Safe teardown
+        }
     }
 
     /**
@@ -50,11 +65,17 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
     public function processMessagesFromAllFolders()
     {
         try {
+            $this->ensureConnected();
+
+            if (! $this->client->isConnected()) {
+                return;
+            }
+
             $rootFolders = $this->client->getFolders();
 
             $this->processMessagesFromLeafFolders($rootFolders);
         } catch (\Exception $e) {
-            throw new \Exception($e->getMessage());
+            Log::error('IMAP Processing Error: '.$e->getMessage());
         }
     }
 
