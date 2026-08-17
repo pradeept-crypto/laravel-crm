@@ -131,6 +131,7 @@ class EmailController extends Controller
                     'folders' => [SupportedFolderEnum::SENT->value],
                 ], $email->id);
             } catch (Exception $e) {
+                \Illuminate\Support\Facades\Log::error('SMTP Mail Send Error: '.$e->getMessage());
             }
         }
 

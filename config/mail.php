@@ -36,11 +36,11 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'host' => getenv('MAIL_HOST') ?: env('MAIL_HOST', 'smtp.gmail.com'),
+            'port' => getenv('MAIL_PORT') ?: env('MAIL_PORT', 587),
+            'encryption' => getenv('MAIL_ENCRYPTION') ?: env('MAIL_ENCRYPTION', 'tls'),
+            'username' => getenv('MAIL_USERNAME') ?: env('MAIL_USERNAME'),
+            'password' => getenv('MAIL_PASSWORD') ?: env('MAIL_PASSWORD'),
             'timeout' => null,
             'verify_peer' => false,
         ],
@@ -92,8 +92,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS'),
-        'name' => env('MAIL_FROM_NAME'),
+        'address' => getenv('MAIL_FROM_ADDRESS') ?: env('MAIL_FROM_ADDRESS', 'pradeep.t@kaditinnovations.com'),
+        'name' => getenv('MAIL_FROM_NAME') ?: env('MAIL_FROM_NAME', 'AUURA CRM'),
     ],
 
     /*
