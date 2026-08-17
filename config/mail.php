@@ -41,7 +41,7 @@ return [
             'encryption' => getenv('MAIL_ENCRYPTION') ?: env('MAIL_ENCRYPTION', 'tls'),
             'username' => getenv('MAIL_USERNAME') ?: env('MAIL_USERNAME'),
             'password' => getenv('MAIL_PASSWORD') ?: env('MAIL_PASSWORD'),
-            'timeout' => null,
+            'timeout' => (int) (getenv('MAIL_TIMEOUT') ?: env('MAIL_TIMEOUT', 15)),
             'verify_peer' => false,
         ],
 
