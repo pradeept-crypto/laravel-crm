@@ -18,7 +18,7 @@
     >
         <div class="w-full">
             <!-- Table view for larger screens, Card view for mobile -->
-            <div class="table-responsive box-shadow rounded-t-0 grid w-full overflow-hidden border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
+            <div class="table-responsive box-shadow rounded-t-0 grid w-full overflow-x-auto border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <!-- Table Header - Always visible on all screens -->
                 <slot
                     name="header"
@@ -35,8 +35,9 @@
 
                     <template v-else>
                         <div
-                            class="row grid min-h-[47px] items-center gap-2.5 border-b bg-gray-50 px-4 py-2.5 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden"
-                            :style="`grid-template-columns: repeat(${gridsCount}, minmax(0, 1fr))`"
+                            class="row grid min-h-[47px] min-w-full items-center gap-2.5 border-b bg-gray-50 px-4 py-2.5 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden"
+                            :class="{'min-w-max': gridsCount > 6}"
+                            :style="`grid-template-columns: ${gridTemplateColumns}`"
                         >
                             <!-- Mass Actions -->
                             <p v-if="available.massActions.length">
@@ -65,7 +66,7 @@
                             <!-- Columns -->
                             <template v-for="column in available.columns">
                                 <div
-                                    class="flex items-center gap-1.5 break-words"
+                                    class="flex items-center gap-1.5 whitespace-nowrap"
                                     :class="{'cursor-pointer select-none hover:text-gray-800 dark:hover:text-white': column.sortable}"
                                     @click="sort(column)"
                                     v-if="column.visibility"
@@ -82,7 +83,7 @@
 
                             <!-- Actions -->
                             <p
-                                class="text-end"
+                                class="text-end whitespace-nowrap px-2 font-medium"
                                 v-if="available.actions.length"
                             >
                                 @lang('admin::app.components.datagrid.table.actions')
@@ -173,9 +174,10 @@
                         <template v-if="available.records.length">
                             <!-- Desktop View -->
                             <div
-                                class="row grid items-center gap-2.5 border-b px-4 py-4 text-black transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
+                                class="row grid min-w-full items-center gap-2.5 border-b px-4 py-4 text-black transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
                                 v-for="record in available.records"
-                                :style="`grid-template-columns: repeat(${gridsCount}, minmax(0, 1fr))`"
+                                :class="{'min-w-max': gridsCount > 6}"
+                                :style="`grid-template-columns: ${gridTemplateColumns}`"
                             >
                                 <!-- Mass Actions -->
                                 <p v-if="available.massActions.length">
@@ -197,7 +199,9 @@
                                 <!-- Columns -->
                                 <template v-for="column in available.columns">
                                     <p
-                                        class="break-words"
+                                        :class="[
+                                            (column.type === 'date' || column.type === 'datetime' || column.index === 'created_at' || column.index === 'expired_at') ? 'whitespace-nowrap font-normal' : 'break-words'
+                                        ]"
                                         v-html="record[column.index]"
                                         v-if="column.visibility"
                                     >
@@ -206,7 +210,7 @@
 
                                 <!-- Actions -->
                                 <p
-                                    class="flex h-full items-center place-self-end"
+                                    class="flex h-full items-center justify-end gap-1.5 whitespace-nowrap place-self-end px-2"
                                     v-if="available.actions.length"
                                 >
                                     <span
@@ -305,6 +309,34 @@
                     }
 
                     return count;
+                },
+
+                gridTemplateColumns() {
+                    let tracks = [];
+
+                    if (this.available.massActions.length) {
+                        tracks.push('40px');
+                    }
+
+                    this.available.columns.forEach((column) => {
+                        if (column.visibility) {
+                            if (column.type === 'date' || column.type === 'datetime' || column.index === 'created_at' || column.index === 'expired_at') {
+                                tracks.push('minmax(140px, 1.2fr)');
+                            } else if (['sub_total', 'discount_amount', 'tax_amount', 'adjustment_amount', 'grand_total', 'price', 'lead_value'].includes(column.index)) {
+                                tracks.push('minmax(110px, 1fr)');
+                            } else if (['id', 'status'].includes(column.index)) {
+                                tracks.push('minmax(60px, 0.6fr)');
+                            } else {
+                                tracks.push('minmax(120px, 1fr)');
+                            }
+                        }
+                    });
+
+                    if (this.available.actions.length) {
+                        tracks.push('minmax(130px, auto)');
+                    }
+
+                    return tracks.length ? tracks.join(' ') : `repeat(${this.gridsCount}, minmax(0, 1fr))`;
                 },
             },
 
