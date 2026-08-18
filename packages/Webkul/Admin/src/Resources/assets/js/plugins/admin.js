@@ -8,71 +8,36 @@ export default {
              * @returns {string} - The formatted price string.
              */
             formatPrice: (price) => {
-                let locale = document.querySelector(
-                    'meta[http-equiv="content-language"]'
-                ).content;
+                let currency = { code: 'INR', symbol: '₹' };
+                try {
+                    const metaEl = document.querySelector('meta[name="currency"]');
+                    if (metaEl && metaEl.content) {
+                        currency = JSON.parse(metaEl.content);
+                    }
+                } catch (e) {}
 
-                locale = locale.replace(/([a-z]{2})_([A-Z]{2})/g, "$1-$2");
+                const symbol = currency.symbol && currency.symbol !== '' ? currency.symbol : (currency.code === 'INR' ? '₹' : '$');
+                const num = Number(price || 0);
 
-                const currency = JSON.parse(
-                    document.querySelector('meta[name="currency"]').content
-                );
-
-                const symbol =
-                    currency.symbol !== "" ? currency.symbol : currency.code;
-
-                if (!currency.currency_position) {
-                    return new Intl.NumberFormat(locale, {
-                        style: "currency",
-                        currency: currency.code,
-                    }).format(price);
+                if (currency.code === 'INR' || symbol === '₹') {
+                    return `₹${num.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}`;
                 }
 
-                const formatter = new Intl.NumberFormat(locale, {
-                    style: "currency",
-                    currency: currency.code,
-                    minimumFractionDigits: currency.decimal ?? 2,
-                });
+                let locale = 'en';
+                try {
+                    const langMeta = document.querySelector('meta[http-equiv="content-language"]');
+                    if (langMeta && langMeta.content) {
+                        locale = langMeta.content.replace(/([a-z]{2})_([A-Z]{2})/g, '$1-$2');
+                    }
+                } catch (e) {}
 
-                const formattedCurrency = formatter
-                    .formatToParts(price)
-                    .map((part) => {
-                        switch (part.type) {
-                            case "currency":
-                                return "";
-
-                            case "group":
-                                return currency.group_separator === ""
-                                    ? part.value
-                                    : currency.group_separator;
-
-                            case "decimal":
-                                return currency.decimal_separator === ""
-                                    ? part.value
-                                    : currency.decimal_separator;
-
-                            default:
-                                return part.value;
-                        }
-                    })
-                    .join("");
-
-                switch (currency.currency_position) {
-                    case "left":
-                        return symbol + formattedCurrency;
-
-                    case "left_with_space":
-                        return symbol + " " + formattedCurrency;
-
-                    case "right":
-                        return formattedCurrency + symbol;
-
-                    case "right_with_space":
-                        return formattedCurrency + " " + symbol;
-
-                    default:
-                        return formattedCurrency;
-                }
+                return new Intl.NumberFormat(locale, {
+                    style: 'currency',
+                    currency: currency.code || 'INR',
+                }).format(num);
             },
 
             /**
