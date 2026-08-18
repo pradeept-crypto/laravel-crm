@@ -13,6 +13,8 @@ use Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor;
 use Webkul\Email\Repositories\AttachmentRepository;
 use Webkul\Email\Repositories\EmailRepository;
 use Webkul\Lead\Repositories\LeadRepository;
+use Webkul\Lead\Repositories\PipelineRepository;
+use Webkul\Lead\Repositories\SourceRepository;
 
 class WebklexImapEmailProcessor implements InboundEmailProcessor
 {
@@ -202,7 +204,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         /**
          * Maps the folder name to the supported folder in our application.
          */
-        $rawFolderName = strtolower((string) $message->getFolder()->name);
+        $rawFolderName = strtolower((string) ($message->getFolder()?->name ?? 'inbox'));
         $folderName = match (true) {
             str_contains($rawFolderName, 'inbox') => SupportedFolderEnum::INBOX->value,
             str_contains($rawFolderName, 'important') => SupportedFolderEnum::IMPORTANT->value,
@@ -240,6 +242,51 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
                 ])->sortByDesc('id')->first();
                 $leadId = $lead?->id;
             }
+
+            // If no existing lead found, automatically create a new lead in Enquiry pipeline
+            if (! $leadId) {
+                try {
+                    $pipeline = app(PipelineRepository::class)->findOneWhere(['name' => 'Enquiry'])
+                        ?: app(PipelineRepository::class)->findOneWhere([['name', 'like', '%enquiry%']])
+                        ?: app(PipelineRepository::class)->getDefaultPipeline();
+
+                    $stage = $pipeline?->stages()->orderBy('sort_order', 'asc')->first() ?: $pipeline?->stages()->first();
+
+                    $displayName = ! empty($fromName) ? $fromName : $fromEmail;
+                    $leadTitle = ! empty($subject) && $subject !== 'No Subject' ? $subject : $displayName;
+
+                    $leadSource = app(SourceRepository::class)->findOneWhere(['name' => 'Email'])
+                        ?: app(SourceRepository::class)->first();
+
+                    if (! $person) {
+                        $person = app(PersonRepository::class)->create([
+                            'entity_type' => 'persons',
+                            'name' => $displayName,
+                            'emails' => [
+                                ['value' => $fromEmail, 'label' => 'work'],
+                            ],
+                        ]);
+                    }
+
+                    $newLead = app(LeadRepository::class)->create([
+                        'title' => $leadTitle,
+                        'description' => $body,
+                        'lead_pipeline_id' => $pipeline?->id,
+                        'lead_pipeline_stage_id' => $stage?->id,
+                        'lead_source_id' => $leadSource?->id,
+                        'person_id' => $person->id,
+                        'entity_type' => 'leads',
+                        'status' => 1,
+                    ]);
+
+                    $leadId = $newLead?->id;
+                } catch (\Throwable $e) {
+                    Log::error('Auto lead creation from inbound email failed: '.$e->getMessage(), [
+                        'from' => $fromEmail,
+                        'subject' => $subject,
+                    ]);
+                }
+            }
         }
 
         $email = $this->emailRepository->create([
@@ -257,7 +304,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             'unique_id' => $messageId,
             'message_id' => $messageId,
             'reference_ids' => $references,
-            'created_at' => $this->convertToDesiredTimezone($message->date->toDate()),
+            'created_at' => $this->convertToDesiredTimezone($message->getDate() ? $message->getDate()->toDate() : now()),
             'parent_id' => $parentEmail?->id,
             'lead_id' => $leadId,
         ]);

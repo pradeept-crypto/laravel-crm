@@ -15,6 +15,13 @@ class ProcessInboundEmails extends Command
     protected $signature = 'inbound-emails:process';
 
     /**
+     * The command aliases.
+     *
+     * @var array
+     */
+    protected $aliases = ['inbound-email:process'];
+
+    /**
      * The console command description.
      *
      * @var string
