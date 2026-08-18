@@ -43,8 +43,8 @@ class EmailController extends Controller
     {
         $route = request('route');
 
-        if (! $route) {
-            return redirect()->route('admin.mail.index', ['route' => SupportedFolderEnum::INBOX->value]);
+        if (! $route || $route === 'index') {
+            $route = SupportedFolderEnum::INBOX->value;
         }
 
         if (! bouncer()->hasPermission('mail.'.$route)) {

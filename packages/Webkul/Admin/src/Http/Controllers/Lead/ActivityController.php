@@ -48,7 +48,7 @@ class ActivityController extends Controller
             ->select('child.*')
             ->join('emails as parent', 'child.parent_id', '=', 'parent.id')
             ->where('parent.lead_id', $leadId)
-            ->union(DB::table('emails as parent')->where('parent.lead_id', $leadId))
+            ->union(DB::table('emails')->where('lead_id', $leadId))
             ->get();
 
         return $activities->concat($emails->map(function ($email) {

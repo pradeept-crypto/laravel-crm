@@ -23,6 +23,11 @@ class EmailDataGrid extends DataGrid
      */
     public function prepareQueryBuilder(): Builder
     {
+        $folder = request('route');
+        if (! $folder || $folder === 'index') {
+            $folder = 'inbox';
+        }
+
         $queryBuilder = DB::table('emails')
             ->select(
                 'emails.id',
@@ -39,7 +44,7 @@ class EmailDataGrid extends DataGrid
             ->leftJoin('email_tags', 'emails.id', '=', 'email_tags.email_id')
             ->leftJoin('tags', 'tags.id', '=', 'email_tags.tag_id')
             ->groupBy('emails.id')
-            ->where('folders', 'like', '%"'.request('route').'"%')
+            ->where('folders', 'like', '%"'.$folder.'"%')
             ->whereNull('parent_id');
 
         $this->addFilter('id', 'emails.id');
