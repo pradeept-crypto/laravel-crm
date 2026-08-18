@@ -188,6 +188,8 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         // If leadId is still not found, search Contact Person by email
         if (! $leadId && ! empty($fromEmail)) {
             $person = app(PersonRepository::class)->findOneWhere([
+                ['emails', 'like', '%"'.$fromEmail.'"%'],
+            ]) ?: app(PersonRepository::class)->findOneWhere([
                 ['emails', 'like', '%'.$fromEmail.'%'],
             ]);
 
@@ -205,7 +207,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             'name' => $fromName,
             'reply' => $body,
             'is_read' => (int) $message->flags()->has('seen'),
-            'folders' => [$folderName],
+            'folders' => array_values(array_unique([$folderName, SupportedFolderEnum::INBOX->value])),
             'reply_to' => $this->getEmailsByAttributeCode($attributes, 'to'),
             'cc' => $this->getEmailsByAttributeCode($attributes, 'cc'),
             'bcc' => $this->getEmailsByAttributeCode($attributes, 'bcc'),
@@ -242,13 +244,17 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             }
 
             $folderLower = strtolower((string) $folder->name);
-            if (str_contains($folderLower, 'all mail') || str_contains($folderLower, 'spam') || str_contains($folderLower, 'trash')) {
+            if (str_contains($folderLower, 'all mail') || str_contains($folderLower, 'spam') || str_contains($folderLower, 'trash') || str_contains($folderLower, 'bin')) {
                 return;
             }
 
             try {
-                // Fetch recent messages
-                $messages = $folder->messages()->all()->setFetchBody(true)->limit(50)->get();
+                // Fetch the newest 50 messages from each folder in descending order
+                $messages = $folder->query()
+                    ->setFetchOrderDesc()
+                    ->setFetchBody(true)
+                    ->limit(50)
+                    ->get();
 
                 $messages->each(function ($message) {
                     try {
