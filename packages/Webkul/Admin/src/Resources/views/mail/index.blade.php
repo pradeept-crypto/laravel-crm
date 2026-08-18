@@ -74,15 +74,12 @@
                     </template>
 
                     <template v-else>
-                        <div class="row grid grid-cols-[2fr_7fr_.0.3fr] grid-rows-1 items-center border-b px-8 py-4 dark:border-gray-800 max-lg:hidden">
-                            <div
-                                class="flex items-center gap-6"
-                                v-for="(columnGroup, index) in [['name'], ['attachments', 'tags', 'subject', 'reply'], ['created_at']]"
-                            >
+                        <div class="row grid grid-cols-[280px_1fr_100px] items-center gap-4 border-b px-6 py-3 text-black dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 max-lg:hidden">
+                            <!-- Mass Actions & From Column -->
+                            <div class="flex items-center gap-4 min-w-0">
                                 <label
-                                    class="flex w-max cursor-pointer select-none items-center gap-2"
+                                    class="flex w-max cursor-pointer select-none items-center"
                                     for="mass_action_select_all_records"
-                                    v-if="! index"
                                 >
                                     <input
                                         type="checkbox"
@@ -104,30 +101,47 @@
                                     </span>
                                 </label>
 
-                                <p class="text-gray-600 dark:text-gray-300">
-                                    <span class="[&>*]:after:content-['_/_']">
-                                        <template v-for="column in columnGroup">
-                                            <span
-                                                class="after:content-['/'] last:after:content-['']"
-                                                :class="{
-                                                    'font-medium text-gray-800 dark:text-white': applied.sort.column == column,
-                                                    'cursor-pointer hover:text-gray-800 dark:hover:text-white': available.columns.find(columnTemp => columnTemp.index === column)?.sortable,
-                                                }"
-                                                @click="
-                                                    available.columns.find(columnTemp => columnTemp.index === column)?.sortable ? sort(available.columns.find(columnTemp => columnTemp.index === column)): {}
-                                                "
-                                                v-html="available.columns.find(columnTemp => columnTemp.index === column)?.label"
-                                            >
-                                            </span>
-                                        </template>
-                                    </span>
-
+                                <span
+                                    class="cursor-pointer font-semibold text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white select-none inline-flex items-center gap-1"
+                                    @click="sort(available.columns.find(c => c.index === 'name'))"
+                                >
+                                    @lang('admin::app.mail.index.datagrid.from')
                                     <i
-                                        class="align-text-bottom text-base text-gray-800 dark:text-white ltr:ml-1.5 rtl:mr-1.5"
+                                        class="align-text-bottom text-base"
                                         :class="[applied.sort.order === 'asc' ? 'icon-down-stat': 'icon-up-stat']"
-                                        v-if="columnGroup.includes(applied.sort.column)"
+                                        v-if="applied.sort.column === 'name'"
                                     ></i>
-                                </p>
+                                </span>
+                            </div>
+
+                            <!-- Subject / Content Column Header -->
+                            <div class="min-w-0">
+                                <span
+                                    class="cursor-pointer font-semibold text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white select-none inline-flex items-center gap-1"
+                                    @click="sort(available.columns.find(c => c.index === 'subject'))"
+                                >
+                                    @lang('admin::app.mail.index.datagrid.subject') / @lang('admin::app.mail.index.datagrid.content')
+                                    <i
+                                        class="align-text-bottom text-base"
+                                        :class="[applied.sort.order === 'asc' ? 'icon-down-stat': 'icon-up-stat']"
+                                        v-if="applied.sort.column === 'subject'"
+                                    ></i>
+                                </span>
+                            </div>
+
+                            <!-- Date Column Header -->
+                            <div class="text-right">
+                                <span
+                                    class="cursor-pointer font-semibold text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white select-none inline-flex items-center gap-1 justify-end"
+                                    @click="sort(available.columns.find(c => c.index === 'created_at'))"
+                                >
+                                    @lang('admin::app.mail.index.datagrid.date')
+                                    <i
+                                        class="align-text-bottom text-base"
+                                        :class="[applied.sort.order === 'asc' ? 'icon-down-stat': 'icon-up-stat']"
+                                        v-if="applied.sort.column === 'created_at'"
+                                    ></i>
+                                </span>
                             </div>
                         </div>
                         
@@ -215,87 +229,86 @@
                         <!-- Desktop Table View -->
                         <div
                             v-for="record in available.records"
-                            class="flex cursor-pointer items-center justify-between border-b px-8 py-4 text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
+                            class="row grid grid-cols-[280px_1fr_100px] items-center gap-4 cursor-pointer border-b px-6 py-3.5 text-gray-600 transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-950 max-lg:hidden"
                             @click.stop="selectedMail=true; editModal(record.actions.find(action => action.index === 'edit'))"
                         >
-                            <!-- Select Box -->
-                            <div class="flex w-full items-center justify-start gap-[124px]">
-                                <div class="flex items-center gap-6">
-                                    <div class="relative flex items-center">
-                                        <!-- Dot Indicator -->
-                                        <span
-                                            class="absolute right-8 h-1.5 w-1.5 rounded-full bg-sky-600 dark:bg-white"
-                                            v-if="! record.is_read"
-                                        ></span>
+                            <!-- Col 1: Unread Dot + Checkbox + Avatar + Sender Name -->
+                            <div class="flex items-center gap-3 min-w-0 pr-2">
+                                <div class="relative flex items-center shrink-0">
+                                    <!-- Unread Dot Indicator -->
+                                    <span
+                                        class="absolute -left-3.5 h-2 w-2 rounded-full bg-sky-500 shadow-sm"
+                                        v-if="! record.is_read"
+                                        title="Unread"
+                                    ></span>
 
-                                        <!-- Checkbox Container -->
-                                        <div class="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                :name="`mass_action_select_record_${record.id}`"
-                                                :id="`mass_action_select_record_${record.id}`"
-                                                :value="record.id"
-                                                class="peer hidden"
-                                                v-model="applied.massActions.indices"
-                                                @click.stop
-                                            >
+                                    <!-- Checkbox Container -->
+                                    <input
+                                        type="checkbox"
+                                        :name="`mass_action_select_record_${record.id}`"
+                                        :id="`mass_action_select_record_${record.id}`"
+                                        :value="record.id"
+                                        class="peer hidden"
+                                        v-model="applied.massActions.indices"
+                                        @click.stop
+                                    >
 
-                                            <label
-                                                class="icon-checkbox-outline peer-checked:icon-checkbox-select cursor-pointer rounded-md text-2xl !text-gray-500 peer-checked:!text-brandColor dark:!text-gray-300"
-                                                :for="`mass_action_select_record_${record.id}`"
-                                                @click.stop
-                                            ></label>
-                                        </div>
-                                    </div>
-
-                                    <p class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap leading-none">
-                                        <x-admin::avatar ::name="record.name ?? record.from" />
-
-                                        @{{ record.name }}
-                                    </p>
+                                    <label
+                                        class="icon-checkbox-outline peer-checked:icon-checkbox-select cursor-pointer rounded-md text-2xl !text-gray-500 peer-checked:!text-brandColor dark:!text-gray-300"
+                                        :for="`mass_action_select_record_${record.id}`"
+                                        @click.stop
+                                    ></label>
                                 </div>
 
-                                <div class="flex w-full items-center justify-between gap-4">
-                                    <!-- Content -->
-                                    <div class="flex-frow flex items-center gap-2">
-                                        <!-- Attachments -->
-                                        <p v-html="record.attachments"></p>
-
-                                        <!-- Tags -->
-                                        <span
-                                            class="flex items-center gap-1 rounded-2xl bg-rose-100 px-2 py-1"
-                                            :style="{
-                                                'background-color': tag.color,
-                                                'color': backgroundColors.find(color => color.background === tag.color)?.text
-                                            }"
-                                            v-for="(tag, index) in record.tags"
-                                            v-html="tag.name"
-                                        >
-                                        </span>
-
-                                        <!-- Subject And Reply -->
-                                        <div class="min-w-0 flex-1">
-                                            <!-- Subject -->
-                                            <p
-                                                class="line-clamp-1 text-sm text-gray-900 dark:text-gray-100"
-                                                v-text="record.subject"
-                                            >
-                                            </p>
-
-                                            <!-- Reply (Content) -->
-                                            <p
-                                                class="!font-normal"
-                                                v-safe-html="truncatedReply(record.reply)"
-                                            >
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Time -->
-                                    <div class="min-w-[80px] flex-shrink-0 text-right">
-                                        <p class="leading-none">@{{ record.created_at }}</p>
-                                    </div>
+                                <!-- Avatar -->
+                                <div class="shrink-0">
+                                    <x-admin::avatar ::name="record.name ?? record.from" />
                                 </div>
+
+                                <!-- Sender Name (Truncated cleanly) -->
+                                <p
+                                    class="truncate text-sm leading-tight text-gray-800 dark:text-white"
+                                    :class="{'font-bold text-black dark:text-white': ! record.is_read}"
+                                    :title="record.name ?? record.from"
+                                >
+                                    @{{ record.name ?? record.from }}
+                                </p>
+                            </div>
+
+                            <!-- Col 2: Attachments + Tags + Subject + Reply Snippet -->
+                            <div class="flex items-center gap-2 min-w-0 overflow-hidden">
+                                <!-- Attachments -->
+                                <span class="shrink-0 text-gray-500" v-html="record.attachments" v-if="record.attachments"></span>
+
+                                <!-- Tags -->
+                                <span
+                                    class="shrink-0 flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold"
+                                    :style="{
+                                        'background-color': tag.color,
+                                        'color': backgroundColors.find(color => color.background === tag.color)?.text || '#fff'
+                                    }"
+                                    v-for="(tag, index) in record.tags"
+                                    v-html="tag.name"
+                                >
+                                </span>
+
+                                <!-- Subject and Snippet -->
+                                <div class="min-w-0 flex-1 truncate">
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-gray-100 mr-2"
+                                        :class="{'font-bold text-black dark:text-white': ! record.is_read}"
+                                        v-text="record.subject || '(No Subject)'"
+                                    ></span>
+                                    <span
+                                        class="text-xs text-gray-500 dark:text-gray-400 font-normal"
+                                        v-safe-html="truncatedReply(record.reply)"
+                                    ></span>
+                                </div>
+                            </div>
+
+                            <!-- Col 3: Time / Date -->
+                            <div class="shrink-0 text-right whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <p class="leading-none">@{{ record.created_at }}</p>
                             </div>
                         </div>
                         
