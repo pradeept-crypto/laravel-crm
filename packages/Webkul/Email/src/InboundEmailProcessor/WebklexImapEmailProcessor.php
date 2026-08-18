@@ -108,6 +108,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         try {
             // Fetch newest 20 messages in descending order
             $messages = $folder->query()
+                ->all()
                 ->setFetchOrderDesc()
                 ->setFetchBody(true)
                 ->limit(20)
