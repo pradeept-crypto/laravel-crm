@@ -70,18 +70,58 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
      */
     public function processMessagesFromAllFolders()
     {
+        @ini_set('memory_limit', '512M');
+
         try {
             $this->ensureConnected();
 
-            if (! $this->client->isConnected()) {
+            if (! $this->client || ! $this->client->isConnected()) {
                 return;
             }
 
-            $rootFolders = $this->client->getFolders();
+            // Target INBOX directly for fast, low-memory processing
+            $inboxFolder = null;
+            try {
+                $inboxFolder = $this->client->getFolder('INBOX') ?: $this->client->getFolder('inbox');
+            } catch (\Throwable) {
+                // If direct getFolder fails, search folders
+            }
 
-            $this->processMessagesFromLeafFolders($rootFolders);
+            if ($inboxFolder) {
+                $this->processSingleFolder($inboxFolder);
+            } else {
+                $rootFolders = $this->client->getFolders();
+                $this->processMessagesFromLeafFolders($rootFolders);
+            }
         } catch (\Exception $e) {
             Log::error('IMAP Processing Error: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Process a single folder safely with a tight memory footprint.
+     *
+     * @param  mixed  $folder
+     */
+    protected function processSingleFolder($folder): void
+    {
+        try {
+            // Fetch newest 20 messages in descending order
+            $messages = $folder->query()
+                ->setFetchOrderDesc()
+                ->setFetchBody(true)
+                ->limit(20)
+                ->get();
+
+            foreach ($messages as $message) {
+                try {
+                    $this->processMessage($message);
+                } catch (\Throwable $e) {
+                    Log::warning('Error processing IMAP message: '.$e->getMessage());
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Error fetching IMAP folder '.($folder->name ?? 'unknown').': '.$e->getMessage());
         }
     }
 
@@ -251,7 +291,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             try {
                 // Fetch the newest 50 messages from each folder in descending order
                 $messages = $folder->query()
-                ->all()
+                    ->all()
                     ->setFetchOrderDesc()
                     ->setFetchBody(true)
                     ->limit(50)

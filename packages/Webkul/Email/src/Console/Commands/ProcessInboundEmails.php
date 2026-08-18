@@ -39,6 +39,8 @@ class ProcessInboundEmails extends Command
      */
     public function handle()
     {
+        @ini_set('memory_limit', '512M');
+
         $this->info('Processing the incoming emails.');
 
         $this->inboundEmailProcessor->processMessagesFromAllFolders();
