@@ -15,6 +15,7 @@ use Webkul\Email\Repositories\EmailRepository;
 use Webkul\Lead\Repositories\LeadRepository;
 use Webkul\Lead\Repositories\PipelineRepository;
 use Webkul\Lead\Repositories\SourceRepository;
+use Webkul\User\Models\User;
 
 class WebklexImapEmailProcessor implements InboundEmailProcessor
 {
@@ -258,9 +259,12 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
                     $leadSource = app(SourceRepository::class)->findOneWhere(['name' => 'Email'])
                         ?: app(SourceRepository::class)->first();
 
+                    $defaultUserId = auth()->guard('user')->id() ?: User::first()?->id ?: 1;
+
                     if (! $person) {
                         $person = app(PersonRepository::class)->create([
                             'entity_type' => 'persons',
+                            'user_id' => $defaultUserId,
                             'name' => $displayName,
                             'emails' => [
                                 ['value' => $fromEmail, 'label' => 'work'],
@@ -275,6 +279,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
                         'lead_pipeline_stage_id' => $stage?->id,
                         'lead_source_id' => $leadSource?->id,
                         'person_id' => $person->id,
+                        'user_id' => $defaultUserId,
                         'entity_type' => 'leads',
                         'status' => 1,
                     ]);

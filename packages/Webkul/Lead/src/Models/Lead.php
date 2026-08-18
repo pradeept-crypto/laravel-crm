@@ -154,7 +154,7 @@ class Lead extends Model implements LeadContract
      */
     public function getRottenDaysAttribute()
     {
-        if (! $this->stage) {
+        if (! $this->stage || ! $this->pipeline) {
             return 0;
         }
 
@@ -166,7 +166,7 @@ class Lead extends Model implements LeadContract
             return 0;
         }
 
-        $rottenDate = $this->created_at->addDays($this->pipeline->rotten_days);
+        $rottenDate = $this->created_at->copy()->addDays($this->pipeline->rotten_days ?? 0);
 
         return $rottenDate->diffInDays(Carbon::now(), false);
     }

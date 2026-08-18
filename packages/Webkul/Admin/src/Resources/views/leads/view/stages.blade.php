@@ -7,7 +7,7 @@
 
 <!-- Stages Vue Component -->
 <v-lead-stages>
-    <x-admin::shimmer.leads.view.stages :count="$lead->pipeline->stages->count() - 1" />
+    <x-admin::shimmer.leads.view.stages :count="max(0, ($lead->pipeline?->stages?->count() ?? 1) - 1)" />
 </v-lead-stages>
 
 {!! view_render_event('admin.leads.view.stages.after', ['lead' => $lead]) !!}
@@ -236,15 +236,15 @@
 
                     isPipelineDropdownOpen: false,
 
-                    currentPipeline: @json($lead->pipeline),
+                    currentPipeline: @json($lead->pipeline ?? $allPipelines->first()),
 
                     pipelines: @json($allPipelines),
 
-                    currentStage: @json($lead->stage),
+                    currentStage: @json($lead->stage ?? $lead->pipeline?->stages?->first() ?? $allPipelines->first()?->stages?->first()),
 
                     nextStage: null,
 
-                    stages: @json($lead->pipeline->stages),
+                    stages: @json($lead->pipeline?->stages ?? $allPipelines->first()?->stages ?? []),
 
                     stageToggler: false,
                 }

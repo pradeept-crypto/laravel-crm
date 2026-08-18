@@ -10,6 +10,7 @@ use Webkul\Email\InboundEmailProcessor\WebklexImapEmailProcessor;
 use Webkul\Email\Models\Email;
 use Webkul\Lead\Models\Lead;
 use Webkul\Lead\Models\Pipeline;
+use Webkul\User\Models\User;
 
 function createMockEmailMessage(string $fromEmail, string $fromName, string $subject, string $body, ?string $inReplyTo = null, ?string $messageId = null)
 {
@@ -214,4 +215,24 @@ test('incoming email reply with in_reply_to header appends to existing parent em
     expect($replyEmail)->not->toBeNull();
     expect($replyEmail->parent_id)->toBe($parentEmail->id);
     expect($replyEmail->lead_id)->toBe($parentEmail->lead_id);
+});
+
+test('auto created email lead view page loads successfully with 200 OK', function () {
+    $pipeline = Pipeline::firstOrCreate(['name' => 'Enquiry'], ['is_default' => 1]);
+    $randomStr = Str::random(8);
+    $senderEmail = "viewtest_{$randomStr}@example.com";
+
+    $msg = createMockEmailMessage($senderEmail, "View User {$randomStr}", "View Subject {$randomStr}", 'View message body');
+    $processor = app(WebklexImapEmailProcessor::class);
+    $processor->processMessage($msg);
+
+    $lead = Lead::whereHas('person', function ($q) use ($senderEmail) {
+        $q->where('emails', 'like', '%'.$senderEmail.'%');
+    })->first();
+
+    expect($lead)->not->toBeNull();
+
+    $user = User::first();
+    $response = $this->actingAs($user)->get(route('admin.leads.view', $lead->id));
+    $response->assertStatus(200);
 });
