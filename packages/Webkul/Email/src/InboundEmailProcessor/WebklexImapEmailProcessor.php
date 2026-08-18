@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Log;
 use Webklex\IMAP\Facades\Client;
 use Webklex\IMAP\Support\FolderCollection;
 use Webklex\PHPIMAP\Message;
+use Webkul\Contact\Repositories\PersonRepository;
 use Webkul\Email\Enums\SupportedFolderEnum;
 use Webkul\Email\InboundEmailProcessor\Contracts\InboundEmailProcessor;
 use Webkul\Email\Repositories\AttachmentRepository;
 use Webkul\Email\Repositories\EmailRepository;
+use Webkul\Lead\Repositories\LeadRepository;
 
 class WebklexImapEmailProcessor implements InboundEmailProcessor
 {
@@ -90,55 +92,74 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
      */
     public function processMessage($message = null): void
     {
-        $attributes = $message->getAttributes();
-
-        $messageId = $attributes['message_id']->first();
-
-        $email = $this->emailRepository->findOneByField('message_id', $messageId);
-
-        if ($email) {
+        if (! $message) {
             return;
         }
 
-        $replyToEmails = $this->getEmailsByAttributeCode($attributes, 'to');
+        $attributes = $message->getAttributes();
 
-        foreach ($replyToEmails as $to) {
-            if ($email = $this->emailRepository->findOneWhere(['message_id' => $to])) {
-                break;
-            }
+        $rawMessageId = $attributes['message_id']?->first() ?: (string) $message->getMessageId();
+        if (empty($rawMessageId)) {
+            $rawMessageId = $message->getUid().'@'.(config('mail.domain') ?: 'kaditinnovations.com');
+        }
+        $messageId = trim((string) $rawMessageId, '<>');
+
+        // Check if message already exists in database
+        $existing = $this->emailRepository->findOneWhere(['message_id' => $messageId])
+            ?: $this->emailRepository->findOneWhere(['message_id' => '<'.$messageId.'>'])
+            ?: $this->emailRepository->findOneWhere(['unique_id' => $messageId]);
+
+        if ($existing) {
+            return;
         }
 
-        if (! isset($email) && isset($attributes['in_reply_to'])) {
+        $fromObj = $attributes['from']?->first() ?: ($message->getFrom() ? $message->getFrom()->first() : null);
+        $fromEmail = $fromObj ? (string) ($fromObj->mail ?? '') : '';
+        $fromName = $fromObj ? (string) ($fromObj->personal ?: $fromEmail) : '';
+
+        $rawSubject = $attributes['subject']?->first() ?: (string) $message->getSubject();
+        $subject = (string) ($rawSubject ?: 'No Subject');
+
+        $htmlBody = $message->getHTMLBody() ?: ($message->bodies['html'] ?? '');
+        $textBody = $message->getTextBody() ?: ($message->bodies['text'] ?? '');
+        $body = ! empty($htmlBody) ? $htmlBody : (! empty($textBody) ? $textBody : '');
+
+        // Find parent email by in_reply_to or references
+        $email = null;
+        if (isset($attributes['in_reply_to'])) {
             $inReplyTo = (string) $attributes['in_reply_to']->first();
             $cleanInReplyTo = trim($inReplyTo, '<>');
 
-            $email = $this->emailRepository->findOneWhere(['message_id' => $inReplyTo])
-                ?: $this->emailRepository->findOneWhere(['message_id' => $cleanInReplyTo]);
-
-            if (! $email) {
-                $email = $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanInReplyTo.'%']])
-                    ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$inReplyTo.'%']]);
-            }
+            $email = $this->emailRepository->findOneWhere(['message_id' => $cleanInReplyTo])
+                ?: $this->emailRepository->findOneWhere(['message_id' => '<'.$cleanInReplyTo.'>'])
+                ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanInReplyTo.'%']]);
         }
 
         $references = [$messageId];
 
-        if (! isset($email) && isset($attributes['references'])) {
+        if (! $email && isset($attributes['references'])) {
             array_push($references, ...$attributes['references']->all());
 
             foreach ($references as $reference) {
                 $cleanRef = trim((string) $reference, '<>');
-                if ($email = $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanRef.'%']])
-                    ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$reference.'%']])) {
+                if ($email = $this->emailRepository->findOneWhere(['message_id' => $cleanRef])
+                    ?: $this->emailRepository->findOneWhere(['message_id' => '<'.$cleanRef.'>'])
+                    ?: $this->emailRepository->findOneWhere([['reference_ids', 'like', '%'.$cleanRef.'%']])) {
                     break;
                 }
             }
         }
 
+        // If not found yet, match by base subject (e.g. "Re: test" -> "test")
+        if (! $email && str_starts_with(strtolower($subject), 're:')) {
+            $baseSubject = trim(substr($subject, 3));
+            $email = $this->emailRepository->findOneWhere([
+                'subject' => $baseSubject,
+            ]);
+        }
+
         /**
          * Maps the folder name to the supported folder in our application.
-         *
-         * To Do: Review this.
          */
         $rawFolderName = strtolower((string) $message->getFolder()->name);
         $folderName = match (true) {
@@ -152,20 +173,37 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
         };
 
         $parentEmail = null;
+        $leadId = null;
 
         if ($email) {
             $existingFolders = is_array($email->folders) ? $email->folders : (json_decode($email->folders, true) ?: []);
             $parentEmail = $this->emailRepository->update([
-                'folders' => array_values(array_unique(array_merge($existingFolders, [$folderName]))),
+                'folders' => array_values(array_unique(array_merge($existingFolders, [SupportedFolderEnum::INBOX->value]))),
                 'reference_ids' => array_values(array_unique(array_merge($email->reference_ids ?? [], $references))),
             ], $email->id);
+
+            $leadId = $parentEmail?->lead_id;
+        }
+
+        // If leadId is still not found, search Contact Person by email
+        if (! $leadId && ! empty($fromEmail)) {
+            $person = app(PersonRepository::class)->findOneWhere([
+                ['emails', 'like', '%'.$fromEmail.'%'],
+            ]);
+
+            if ($person) {
+                $lead = app(LeadRepository::class)->findOneWhere([
+                    'person_id' => $person->id,
+                ]);
+                $leadId = $lead?->id;
+            }
         }
 
         $email = $this->emailRepository->create([
-            'from' => $attributes['from']->first()->mail,
-            'subject' => $attributes['subject']->first(),
-            'name' => $attributes['from']->first()->personal,
-            'reply' => $message->bodies['html'] ?? $message->bodies['text'],
+            'from' => $fromEmail,
+            'subject' => $subject,
+            'name' => $fromName,
+            'reply' => $body,
             'is_read' => (int) $message->flags()->has('seen'),
             'folders' => [$folderName],
             'reply_to' => $this->getEmailsByAttributeCode($attributes, 'to'),
@@ -178,6 +216,7 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             'reference_ids' => $references,
             'created_at' => $this->convertToDesiredTimezone($message->date->toDate()),
             'parent_id' => $parentEmail?->id,
+            'lead_id' => $leadId,
         ]);
 
         if ($message->hasAttachments()) {
