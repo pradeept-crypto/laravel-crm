@@ -298,10 +298,18 @@
                     style="position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: 16px;"
                     @click.self="showNewChatModal = false"
                 >
-                    <div style="width: 100%; max-width: 440px; background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e5e7eb;" class="dark:bg-gray-900 dark:border-gray-800">
+                    <div style="width: 100%; max-width: 460px; background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e5e7eb;" class="dark:bg-gray-900 dark:border-gray-800">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                            <h3 style="font-size: 16px; font-weight: 700; color: #111827;" class="dark:text-white">Start New WhatsApp Chat</h3>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #ecfdf5; color: #10b981; font-size: 14px;">💬</span>
+                                <h3 style="font-size: 16px; font-weight: 700; color: #111827;" class="dark:text-white">Start New WhatsApp Chat</h3>
+                            </div>
                             <button @click="showNewChatModal = false" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; line-height: 1;">&times;</button>
+                        </div>
+
+                        <!-- Policy Info Banner -->
+                        <div style="margin-bottom: 16px; padding: 10px 12px; border-radius: 8px; background: #f0fdf4; border: 1px solid #bbf7d0; font-size: 12px; color: #166534; line-height: 1.4;" class="dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300">
+                            <strong>💡 Meta Cloud API:</strong> New chats must start with an approved Template. Once the customer replies, 24h two-way conversation is unlocked.
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -310,25 +318,26 @@
                                 <input
                                     type="text"
                                     v-model="newChatNumber"
-                                    placeholder="e.g. 917200423747"
-                                    style="width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; background: #ffffff;"
+                                    placeholder="e.g. 919003462320"
+                                    style="width: 100%; padding: 9px 12px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; background: #ffffff;"
                                     class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                 />
                             </div>
 
                             <div>
-                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;" class="dark:text-gray-300">Initial Message:</label>
-                                <textarea
-                                    v-model="newChatMessage"
-                                    rows="3"
-                                    placeholder="Type your message..."
-                                    style="width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; background: #ffffff;"
+                                <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;" class="dark:text-gray-300">Template Name:</label>
+                                <input
+                                    type="text"
+                                    v-model="newChatTemplate"
+                                    placeholder="hello_world"
+                                    style="width: 100%; padding: 9px 12px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 8px; outline: none; background: #ffffff;"
                                     class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                                ></textarea>
+                                />
+                                <span style="display: block; font-size: 11px; color: #6b7280; margin-top: 4px;" class="dark:text-gray-400">Default: <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-[10px]">hello_world</code></span>
                             </div>
                         </div>
 
-                        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
+                        <div style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 8px;">
                             <button
                                 type="button"
                                 @click="showNewChatModal = false"
@@ -343,7 +352,7 @@
                                 class="primary-button !bg-emerald-600 hover:!bg-emerald-700 text-xs py-2 px-4 font-semibold"
                             >
                                 <span v-if="isSending">Sending...</span>
-                                <span v-else>Send Message</span>
+                                <span v-else>Send Template & Start Chat</span>
                             </button>
                         </div>
                     </div>
@@ -368,7 +377,7 @@
                         pollInterval: null,
                         showNewChatModal: false,
                         newChatNumber: '',
-                        newChatMessage: 'Hello!',
+                        newChatTemplate: 'hello_world',
                     };
                 },
 
@@ -532,8 +541,8 @@
                         this.isSending = true;
                         const payload = {
                             to: this.newChatNumber.trim(),
-                            body: this.newChatMessage.trim(),
-                            type: 'text',
+                            type: 'template',
+                            template_name: (this.newChatTemplate || 'hello_world').trim(),
                         };
 
                         this.$axios.post("{{ route('admin.whatsapp.send') }}", payload)
@@ -547,13 +556,13 @@
                                         contact_name: this.newChatNumber.trim(),
                                     });
                                 }
-                                this.$emitter.emit('add-flash', { type: 'success', message: 'Chat started!' });
+                                this.$emitter.emit('add-flash', { type: 'success', message: 'Template sent & chat started!' });
                             })
                             .catch(error => {
                                 this.isSending = false;
                                 const msg = error.response && error.response.data && error.response.data.message
                                     ? error.response.data.message
-                                    : "Failed to start chat.";
+                                    : "Failed to send template.";
                                 this.$emitter.emit('add-flash', { type: 'error', message: msg });
                             });
                     },
