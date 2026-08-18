@@ -62,47 +62,57 @@
 
                         {!! view_render_event('admin.leads.view.person.email.before', ['lead' => $lead]) !!}
 
-                        @foreach ($lead->person->emails as $email)
-                            <div class="flex gap-1">
-                                <a
-                                    class="text-brandColor"
-                                    href="mailto:{{ $email['value'] }}"
-                                >
-                                    {{ $email['value'] }}
-                                </a>
+                        @if (! empty($lead->person->emails) && is_iterable($lead->person->emails))
+                            @foreach ($lead->person->emails as $email)
+                                <div class="flex gap-1">
+                                    <a
+                                        class="text-brandColor"
+                                        href="mailto:{{ $email['value'] ?? $email }}"
+                                    >
+                                        {{ $email['value'] ?? $email }}
+                                    </a>
 
-                                <span class="text-gray-500 dark:text-gray-300">
-                                    ({{ $email['label'] }})
-                                </span>
-                            </div>
-                        @endforeach
+                                    @if (! empty($email['label']))
+                                        <span class="text-gray-500 dark:text-gray-300">
+                                            ({{ $email['label'] }})
+                                        </span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
 
                         {!! view_render_event('admin.leads.view.person.email.after', ['lead' => $lead]) !!}
 
                         {!! view_render_event('admin.leads.view.person.contact_numbers.before', ['lead' => $lead]) !!}
 
-                        @foreach ($lead->person->contact_numbers as $contactNumber)
-                            <div class="flex items-center gap-2">
-                                <a
-                                    class="text-brandColor hover:underline"
-                                    href="tel:{{ $contactNumber['value'] }}"
-                                >
-                                    {{ $contactNumber['value'] }}
-                                </a>
+                        @if (! empty($lead->person->contact_numbers) && is_iterable($lead->person->contact_numbers))
+                            @foreach ($lead->person->contact_numbers as $contactNumber)
+                                <div class="flex items-center gap-2">
+                                    <a
+                                        class="text-brandColor hover:underline"
+                                        href="tel:{{ $contactNumber['value'] ?? $contactNumber }}"
+                                    >
+                                        {{ $contactNumber['value'] ?? $contactNumber }}
+                                    </a>
 
-                                <span class="text-gray-500 dark:text-gray-300 text-xs">
-                                    ({{ $contactNumber['label'] }})
-                                </span>
+                                    @if (! empty($contactNumber['label']))
+                                        <span class="text-gray-500 dark:text-gray-300 text-xs">
+                                            ({{ $contactNumber['label'] }})
+                                        </span>
+                                    @endif
 
-                                <a
-                                    href="tel:{{ $contactNumber['value'] }}"
-                                    class="inline-flex items-center gap-1 rounded bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
-                                    title="Click to Call with VoIP Dialer"
-                                >
-                                    <span>📞 Call</span>
-                                </a>
-                            </div>
-                        @endforeach
+                                    @if (! empty($contactNumber['value']))
+                                        <a
+                                            href="tel:{{ $contactNumber['value'] }}"
+                                            class="inline-flex items-center gap-1 rounded bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200"
+                                            title="Click to Call with VoIP Dialer"
+                                        >
+                                            <span>📞 Call</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
 
                         {!! view_render_event('admin.leads.view.person.contact_numbers.after', ['lead' => $lead]) !!}
                     </div>
