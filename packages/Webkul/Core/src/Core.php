@@ -201,32 +201,54 @@ class Core
     /**
      * Return currency symbol from currency code.
      *
-     * @param  float  $price
+     * @param  string|null  $code
      * @return string
      */
-    public function currencySymbol($code)
+    public function currencySymbol($code = null)
     {
-        $formatter = new \NumberFormatter(app()->getLocale().'@currency='.$code, \NumberFormatter::CURRENCY);
+        $code = $code ?: config('app.currency', 'INR');
 
-        return $formatter->getSymbol(\NumberFormatter::CURRENCY_SYMBOL);
+        if (strtoupper((string) $code) === 'INR') {
+            return '₹';
+        }
+
+        try {
+            $formatter = new \NumberFormatter(app()->getLocale().'@currency='.$code, \NumberFormatter::CURRENCY);
+
+            return $formatter->getSymbol(\NumberFormatter::CURRENCY_SYMBOL) ?: ($code === 'INR' ? '₹' : '$');
+        } catch (\Throwable) {
+            return $code === 'INR' ? '₹' : '$';
+        }
     }
 
     /**
-     * Format price with base currency symbol. This method also give ability to encode
-     * the base currency symbol and its optional.
+     * Format price with base currency symbol. This method also gives the ability to encode
+     * the base currency symbol and its optional precision.
      *
-     * @param  float  $price
+     * @param  float|int|string|null  $price
+     * @param  int  $precision
      * @return string
      */
-    public function formatBasePrice($price)
+    public function formatBasePrice($price, $precision = 2)
     {
-        if (is_null($price)) {
+        if (is_null($price) || $price === '') {
             $price = 0;
         }
 
-        $formatter = new \NumberFormatter(app()->getLocale(), \NumberFormatter::CURRENCY);
+        $currency = config('app.currency', 'INR');
 
-        return $formatter->formatCurrency($price, config('app.currency'));
+        if (strtoupper((string) $currency) === 'INR') {
+            return '₹'.number_format((float) $price, (int) $precision);
+        }
+
+        try {
+            $formatter = new \NumberFormatter(app()->getLocale(), \NumberFormatter::CURRENCY);
+            $formatter->setAttribute(\NumberFormatter::FRACTION_DIGITS, (int) $precision);
+
+            return $formatter->formatCurrency((float) $price, $currency);
+        } catch (\Throwable) {
+            return '$'.number_format((float) $price, (int) $precision);
+        }
     }
 
     /**

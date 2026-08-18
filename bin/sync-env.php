@@ -26,6 +26,7 @@ $vars = [
     'APP_URL' => getenv('APP_URL') ?: ($isRailway ? 'https://laravel-crm-production-baa6.up.railway.app' : 'http://localhost:8000'),
     'APP_ENV' => 'production',
     'APP_DEBUG' => 'false',
+    'APP_CURRENCY' => getenv('APP_CURRENCY') ?: 'INR',
     'WHATSAPP_PHONE_NUMBER_ID' => getenv('WHATSAPP_PHONE_NUMBER_ID') ?: '',
     'WHATSAPP_ACCESS_TOKEN' => getenv('WHATSAPP_ACCESS_TOKEN') ?: '',
     'WHATSAPP_VERIFY_TOKEN' => getenv('WHATSAPP_VERIFY_TOKEN') ?: '',
