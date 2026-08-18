@@ -234,9 +234,9 @@ class WebklexImapEmailProcessor implements InboundEmailProcessor
             ]);
 
             if ($person) {
-                $lead = app(LeadRepository::class)->findOneWhere([
+                $lead = app(LeadRepository::class)->findWhere([
                     'person_id' => $person->id,
-                ]);
+                ])->sortByDesc('id')->first();
                 $leadId = $lead?->id;
             }
         }
