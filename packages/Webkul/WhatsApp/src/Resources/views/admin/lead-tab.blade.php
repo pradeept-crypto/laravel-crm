@@ -21,7 +21,7 @@
 
 @pushOnce('scripts')
     <script type="text/x-template" id="v-lead-whatsapp-chat-template">
-        <div class="flex flex-col bg-white dark:bg-gray-900 overflow-hidden relative" style="height: 520px;">
+        <div class="flex flex-col bg-white dark:bg-gray-900 overflow-hidden relative" style="height: calc(100vh - 240px); min-height: 680px;">
             
             <!-- WhatsApp Chat Header -->
             <div class="flex items-center justify-between border-b border-gray-200 bg-[#f0f2f5] px-4 py-2.5 dark:border-gray-800 dark:bg-[#202c33] shrink-0">
