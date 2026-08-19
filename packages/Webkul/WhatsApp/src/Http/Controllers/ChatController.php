@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Webkul\Activity\Repositories\ActivityRepository;
 use Webkul\Contact\Models\Person;
 use Webkul\Lead\Models\Lead;
 use Webkul\WhatsApp\Models\WhatsAppMessage;
@@ -288,6 +289,28 @@ class ChatController extends Controller
             'raw_payload' => data_get($result, 'body'),
             'sent_at' => now(),
         ]);
+
+        if ($leadId && $result['ok']) {
+            $snippet = mb_strimwidth($body ?: ($type.' attachment'), 0, 60, '...');
+            $activity = app(ActivityRepository::class)->create([
+                'title' => "💬 WhatsApp Message: {$snippet}",
+                'type' => 'note',
+                'comment' => "<strong>WhatsApp sent to +{$normalizedTo}:</strong><br>".nl2br(e($body ?: "[{$type}]")),
+                'additional' => json_encode(['wa_message_id' => $message->wa_message_id, 'to' => $normalizedTo, 'direction' => 'outbound']),
+                'schedule_from' => now(),
+                'schedule_to' => now(),
+                'is_done' => 1,
+                'user_id' => auth()->id() ?: 1,
+            ]);
+
+            if (method_exists($activity, 'leads')) {
+                $activity->leads()->syncWithoutDetaching([$leadId]);
+            }
+
+            if ($personId && method_exists($activity, 'persons')) {
+                $activity->persons()->syncWithoutDetaching([$personId]);
+            }
+        }
 
         return response()->json([
             'ok' => $result['ok'],
