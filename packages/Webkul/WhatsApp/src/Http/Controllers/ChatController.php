@@ -125,8 +125,9 @@ class ChatController extends Controller
             'lead_id' => 'nullable|integer',
             'to' => 'required|string',
             'body' => 'nullable|string',
-            'type' => 'nullable|string|in:text,template',
+            'type' => 'nullable|string|in:text,template,image,document,audio,video',
             'template_name' => 'nullable|string',
+            'file' => 'nullable|file|max:51200',
         ]);
 
         $type = $data['type'] ?? 'text';
@@ -134,12 +135,41 @@ class ChatController extends Controller
         $cleanTo = preg_replace('/\D/', '', $normalizedTo);
         $phone10 = strlen($cleanTo) >= 10 ? substr($cleanTo, -10) : $cleanTo;
 
-        if ($type === 'template') {
+        $mediaUrl = null;
+        $body = $data['body'] ?? '';
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $mime = $file->getMimeType();
+
+            if (str_starts_with($mime, 'image/')) {
+                $type = 'image';
+            } elseif (str_starts_with($mime, 'audio/')) {
+                $type = 'audio';
+            } elseif (str_starts_with($mime, 'video/')) {
+                $type = 'video';
+            } else {
+                $type = 'document';
+            }
+
+            $path = $file->store('whatsapp', 'public');
+            $mediaUrl = asset('storage/'.$path);
+
+            $result = $this->whatsAppService->sendMedia(
+                $normalizedTo,
+                $type,
+                $mediaUrl,
+                $body ?: $file->getClientOriginalName()
+            );
+
+            if (! $body) {
+                $body = $file->getClientOriginalName();
+            }
+        } elseif ($type === 'template') {
             $templateName = $data['template_name'] ?? 'hello_world';
             $result = $this->whatsAppService->sendTemplate($normalizedTo, $templateName);
             $body = 'Template: '.$templateName;
         } else {
-            $body = $data['body'] ?? '';
             $result = $this->whatsAppService->sendText($normalizedTo, $body);
         }
 
@@ -168,6 +198,7 @@ class ChatController extends Controller
             'to_number' => $normalizedTo,
             'type' => $type,
             'body' => $body,
+            'media_url' => $mediaUrl,
             'status' => $result['ok'] ? 'sent' : 'failed',
             'raw_payload' => data_get($result, 'body'),
             'sent_at' => now(),

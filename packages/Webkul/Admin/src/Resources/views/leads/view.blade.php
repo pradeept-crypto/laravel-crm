@@ -56,6 +56,16 @@
                 <div class="flex flex-wrap gap-2">
                     {!! view_render_event('admin.leads.view.actions.before', ['lead' => $lead]) !!}
 
+                    <!-- WhatsApp Activity Action -->
+                    <a
+                        href="?tab=whatsapp"
+                        class="inline-flex items-center gap-1.5 rounded-md border border-emerald-500 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:border-emerald-800 dark:text-emerald-300 transition shadow-sm"
+                        title="Chat on WhatsApp"
+                    >
+                        <span>💬</span>
+                        <span>WhatsApp</span>
+                    </a>
+
                     @if (bouncer()->hasPermission('mail.compose'))
                         <!-- Mail Activity Action -->
                         <x-admin::activities.actions.mail
@@ -113,11 +123,17 @@
                 :email-detach-endpoint="route('admin.leads.emails.detach', $lead->id)"
                 :activeType="request()->query('tab') ?? (request()->query('from') === 'quotes' ? 'quotes' : 'all')"
                 :extra-types="[
+                    ['name' => 'whatsapp', 'label' => '💬 WhatsApp'],
                     ['name' => 'description', 'label' => trans('admin::app.leads.view.tabs.description')],
                     ['name' => 'products', 'label' => trans('admin::app.leads.view.tabs.products')],
                     ['name' => 'quotes', 'label' => trans('admin::app.leads.view.tabs.quotes')],
                 ]"
             >
+                <!-- WhatsApp Chat Tab -->
+                <x-slot:whatsapp>
+                    @include ('whatsapp::admin.lead-tab', ['lead' => $lead])
+                </x-slot>
+
                 <!-- Products -->
                 <x-slot:products>
                     @include ('admin::leads.view.products')
