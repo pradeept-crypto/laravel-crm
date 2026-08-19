@@ -219,7 +219,7 @@
                                                     alt="Image"
                                                     style="border-radius: 8px; max-height: 260px; width: 100%; object-fit: cover; cursor: pointer;"
                                                     @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
-                                                    @error="handleImageError(msg.id)"
+                                                    v-on:error="handleImageError(msg.id)"
                                                     loading="lazy"
                                                 />
                                                 <div v-else style="padding: 12px; text-align: center;">

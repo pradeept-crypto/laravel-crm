@@ -15,8 +15,8 @@
 
 <v-lead-whatsapp-chat
     :lead-id="{{ $lead->id }}"
-    initial-phone="{{ $contactNumber }}"
-    contact-name="{{ $lead->person?->name ?? $lead->title }}"
+    :initial-phone='@json($contactNumber)'
+    :contact-name='@json($lead->person?->name ?? $lead->title)'
 ></v-lead-whatsapp-chat>
 
 @pushOnce('scripts')
@@ -129,7 +129,7 @@
                                         alt="Image"
                                         class="max-h-72 w-full object-cover rounded-xl cursor-pointer hover:opacity-95 transition"
                                         @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
-                                        @error="handleImageError(msg.id)"
+                                        v-on:error="handleImageError(msg.id)"
                                         loading="lazy"
                                     />
                                 </template>
