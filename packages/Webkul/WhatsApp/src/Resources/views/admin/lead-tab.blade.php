@@ -21,30 +21,30 @@
 
 @pushOnce('scripts')
     <script type="text/x-template" id="v-lead-whatsapp-chat-template">
-        <div class="flex flex-col rounded-xl border border-gray-300 bg-white dark:border-gray-800 dark:bg-gray-900 overflow-hidden shadow-sm relative" style="height: 600px;">
+        <div class="flex flex-col bg-white dark:bg-gray-900 overflow-hidden relative" style="height: 520px;">
             
             <!-- WhatsApp Chat Header -->
-            <div class="flex items-center justify-between border-b border-gray-200 bg-[#f0f2f5] px-4 py-3 dark:border-gray-800 dark:bg-[#202c33] shrink-0">
+            <div class="flex items-center justify-between border-b border-gray-200 bg-[#f0f2f5] px-4 py-2.5 dark:border-gray-800 dark:bg-[#202c33] shrink-0">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#00a884] font-bold text-white shadow-sm text-sm">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[#00a884] font-bold text-white shadow-sm text-xs">
                         @{{ getInitials(contactName || phoneNumber) }}
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h4 class="font-bold text-sm text-gray-900 dark:text-white">@{{ contactName || 'Lead Contact' }}</h4>
+                            <h4 class="font-bold text-xs text-gray-900 dark:text-white">@{{ contactName || 'Lead Contact' }}</h4>
                             <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:text-emerald-300">
                                 <span class="h-1.5 w-1.5 rounded-full bg-[#00a884] animate-pulse"></span>
                                 WhatsApp Cloud
                             </span>
                         </div>
-                        <div class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                        <div class="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-400">
                             <span>Phone:</span>
                             <input
                                 v-if="isEditingPhone || !phoneNumber"
                                 type="text"
                                 v-model="phoneNumber"
                                 placeholder="e.g. 919003462320"
-                                class="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                class="rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[11px] text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                 @blur="isEditingPhone = false"
                                 @keyup.enter="isEditingPhone = false"
                             />
@@ -52,7 +52,7 @@
                             <button
                                 type="button"
                                 @click="isEditingPhone = !isEditingPhone"
-                                class="text-[#00a884] text-[11px] hover:underline font-semibold"
+                                class="text-[#00a884] text-[10px] hover:underline font-semibold"
                                 title="Edit Phone Number"
                             >
                                 @{{ isEditingPhone ? 'Done' : '✏️' }}
@@ -65,7 +65,7 @@
                     <button
                         type="button"
                         @click="sendTemplateModal = true"
-                        class="inline-flex items-center gap-1 rounded-lg border border-[#00a884] bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#00a884] hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 transition"
+                        class="inline-flex items-center gap-1 rounded-lg border border-[#00a884] bg-emerald-50 px-2.5 py-1 text-xs font-bold text-[#00a884] hover:bg-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 transition"
                         title="Send Approved Template Message"
                     >
                         <span>📑 Send Template</span>
@@ -74,10 +74,10 @@
                         type="button"
                         @click="fetchMessages"
                         :disabled="isLoading"
-                        class="rounded-full p-2 text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 transition"
+                        class="rounded-full p-1.5 text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 transition"
                         title="Refresh Conversation"
                     >
-                        <span class="icon-refresh text-lg" :class="{'animate-spin': isLoading}"></span>
+                        <span class="icon-refresh text-base" :class="{'animate-spin': isLoading}"></span>
                     </button>
                 </div>
             </div>
@@ -89,23 +89,23 @@
                 class="flex-1 overflow-y-auto p-4 space-y-3 relative"
                 style="background-color: #efeae2; background-image: radial-gradient(#d1d5db 1px, transparent 1px); background-size: 24px 24px;"
             >
-                <div v-if="isLoading && !messages.length" class="flex items-center justify-center h-48 text-gray-500">
-                    <span class="animate-spin text-2xl mr-2">⏳</span> Loading conversation history...
+                <div v-if="isLoading && !messages.length" class="flex items-center justify-center h-48 text-gray-500 text-xs">
+                    <span class="animate-spin text-xl mr-2">⏳</span> Loading conversation history...
                 </div>
 
                 <div v-else-if="!messages.length" class="flex flex-col items-center justify-center h-48 text-center text-gray-500 p-4">
-                    <div class="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#00a884] flex items-center justify-center text-2xl mb-2">
+                    <div class="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950 text-[#00a884] flex items-center justify-center text-xl mb-2">
                         💬
                     </div>
-                    <p class="font-bold text-sm text-gray-800 dark:text-gray-200">No WhatsApp messages yet</p>
-                    <p class="text-xs text-gray-500 max-w-xs mt-1">Start chatting with this lead or send an initial template to open the conversation.</p>
+                    <p class="font-bold text-xs text-gray-800 dark:text-gray-200">No WhatsApp messages yet</p>
+                    <p class="text-[11px] text-gray-500 max-w-xs mt-1">Start chatting with this lead or send an initial template.</p>
                 </div>
 
                 <!-- Grouped Messages with Date Dividers -->
                 <template v-for="(group, dateKey) in groupedMessages" :key="dateKey">
                     <!-- Date Separator Pill -->
-                    <div class="flex justify-center my-2">
-                        <span class="rounded-lg bg-white/90 dark:bg-[#182229] px-3 py-1 text-[11px] font-semibold text-gray-600 dark:text-gray-300 shadow-sm border border-black/5">
+                    <div class="flex justify-center my-1.5">
+                        <span class="rounded-md bg-white/90 dark:bg-[#182229] px-2.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-gray-300 shadow-sm border border-black/5">
                             @{{ formatDateHeader(dateKey) }}
                         </span>
                     </div>
@@ -118,28 +118,34 @@
                         :class="msg.direction === 'outbound' ? 'items-end' : 'items-start'"
                     >
                         <div
-                            class="max-w-[78%] rounded-2xl px-3.5 py-2 shadow-sm relative text-sm"
-                            :class="msg.direction === 'outbound' ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none' : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-black/5'"
+                            class="rounded-2xl px-3 py-1.5 shadow-sm relative text-xs"
+                            :class="[
+                                msg.direction === 'outbound'
+                                    ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none'
+                                    : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-black/5',
+                                msg.type === 'image' ? 'w-fit max-w-[260px]' : 'max-w-[75%]'
+                            ]"
                         >
-                            <!-- Image Attachment Preview -->
-                            <div v-if="msg.type === 'image'" class="mb-1.5 overflow-hidden rounded-xl bg-black/5 relative max-w-[280px] sm:max-w-[320px] max-h-[260px] flex items-center justify-center shadow-sm">
+                            <!-- Compact Image Thumbnail -->
+                            <div v-if="msg.type === 'image'" class="mb-1 overflow-hidden rounded-xl bg-black/5 cursor-pointer shadow-sm" style="max-width: 240px; max-height: 180px;">
                                 <template v-if="!imageErrors[msg.id]">
                                     <img
                                         :src="msg.media_stream_url || msg.media_url"
                                         alt="Image"
-                                        class="max-h-[260px] w-auto max-w-full object-cover rounded-xl cursor-pointer hover:opacity-95 transition"
+                                        style="width: 240px; height: 160px; object-fit: cover; border-radius: 10px;"
+                                        class="hover:opacity-95 transition"
                                         @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
                                         v-on:error="handleImageError(msg.id)"
                                         loading="lazy"
                                     />
                                 </template>
-                                <div v-else class="p-3 text-center min-w-[220px]">
-                                    <span class="text-2xl block mb-1">🖼️</span>
-                                    <p class="text-xs text-gray-700 dark:text-gray-300 font-semibold truncate">@{{ msg.body || 'Image Attachment' }}</p>
+                                <div v-else class="p-3 text-center" style="width: 220px;">
+                                    <span class="text-xl block mb-1">🖼️</span>
+                                    <p class="text-[11px] text-gray-700 dark:text-gray-300 font-semibold truncate">@{{ msg.body || 'Image Attachment' }}</p>
                                     <button
                                         type="button"
                                         @click="retryImage(msg.id)"
-                                        class="mt-1 text-xs text-[#00a884] font-bold hover:underline"
+                                        class="mt-1 text-[11px] text-[#00a884] font-bold hover:underline"
                                     >
                                         🔄 Retry
                                     </button>
@@ -147,37 +153,37 @@
                             </div>
 
                             <!-- Document / File Attachment Preview -->
-                            <div v-else-if="msg.type === 'document'" class="mb-1.5 p-2.5 rounded-xl bg-white/90 dark:bg-black/20 flex items-center justify-between gap-3 min-w-[240px] max-w-[320px] border border-black/10 dark:border-white/10 shadow-sm">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#00a884] text-white font-bold text-xs uppercase shrink-0 shadow-sm">
+                            <div v-else-if="msg.type === 'document'" class="mb-1 p-2 rounded-xl bg-white/90 dark:bg-black/20 flex items-center justify-between gap-3 min-w-[220px] max-w-[280px] border border-black/10 dark:border-white/10 shadow-sm">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00a884] text-white font-bold text-[11px] uppercase shrink-0 shadow-sm">
                                         @{{ getFileExt(msg.body || msg.media_url) }}
                                     </div>
                                     <div class="min-w-0">
                                         <p class="truncate font-bold text-xs text-gray-900 dark:text-white" :title="msg.body || 'Document'">@{{ msg.body || 'Document' }}</p>
-                                        <span class="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document</span>
+                                        <span class="text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document</span>
                                     </div>
                                 </div>
                                 <a
                                     :href="msg.media_stream_url || msg.media_url"
                                     target="_blank"
                                     download
-                                    class="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#00a884] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#008f6f] shadow-sm transition"
+                                    class="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#00a884] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#008f6f] shadow-sm transition"
                                 >
                                     <span>⬇</span> Download
                                 </a>
                             </div>
 
                             <!-- Audio Attachment Preview -->
-                            <div v-else-if="msg.type === 'audio'" class="mb-1.5 p-2 rounded-xl bg-black/5 dark:bg-white/10 min-w-[240px]">
-                                <audio controls class="w-full h-8">
+                            <div v-else-if="msg.type === 'audio'" class="mb-1 p-1.5 rounded-xl bg-black/5 dark:bg-white/10 min-w-[220px]">
+                                <audio controls class="w-full h-7">
                                     <source :src="msg.media_stream_url || msg.media_url" />
                                     Your browser does not support audio.
                                 </audio>
                             </div>
 
                             <!-- Video Attachment Preview -->
-                            <div v-else-if="msg.type === 'video'" class="mb-1.5 overflow-hidden rounded-xl bg-black min-w-[240px]">
-                                <video controls class="max-h-64 w-full rounded-xl">
+                            <div v-else-if="msg.type === 'video'" class="mb-1 overflow-hidden rounded-xl bg-black min-w-[220px] max-w-[260px]">
+                                <video controls class="max-h-48 w-full rounded-xl">
                                     <source :src="msg.media_stream_url || msg.media_url" />
                                     Your browser does not support video.
                                 </video>
@@ -186,13 +192,13 @@
                             <!-- Text Message Body -->
                             <p
                                 v-if="msg.body && (msg.type === 'text' || msg.type === 'template' || (msg.type === 'image' && msg.body !== msg.media_url && !msg.body.startsWith('http')))"
-                                class="whitespace-pre-wrap break-words leading-relaxed text-sm"
+                                class="whitespace-pre-wrap break-words leading-relaxed text-xs"
                             >
                                 @{{ msg.body }}
                             </p>
 
                             <!-- Timestamp & Status Checkmarks -->
-                            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                            <div class="flex items-center justify-end gap-1 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400">
                                 <span>@{{ formatTime(msg.sent_at || msg.created_at) }}</span>
                                 <span v-if="msg.direction === 'outbound'">
                                     <span v-if="msg.status === 'read'" class="text-[#53bdeb] font-bold" title="Read">✓✓</span>
@@ -212,37 +218,37 @@
                 v-if="showScrollToBottom"
                 type="button"
                 @click="scrollToBottomSmooth"
-                class="absolute bottom-20 right-6 z-20 flex items-center gap-1.5 rounded-full bg-[#00a884] px-3.5 py-1.5 text-xs font-bold text-white shadow-lg hover:bg-[#008f6f] transition animate-bounce"
+                class="absolute bottom-16 right-4 z-20 flex items-center gap-1 rounded-full bg-[#00a884] px-3 py-1 text-xs font-bold text-white shadow-lg hover:bg-[#008f6f] transition"
             >
                 <span>↓</span>
                 <span>New messages</span>
             </button>
 
             <!-- Selected Attachment Preview Tray -->
-            <div v-if="selectedFile" class="flex items-center justify-between border-t border-emerald-200 bg-emerald-50 px-4 py-2 dark:border-emerald-800 dark:bg-emerald-950/60 text-xs text-emerald-900 dark:text-emerald-200 shrink-0">
+            <div v-if="selectedFile" class="flex items-center justify-between border-t border-emerald-200 bg-emerald-50 px-3 py-1.5 dark:border-emerald-800 dark:bg-emerald-950/60 text-xs text-emerald-900 dark:text-emerald-200 shrink-0">
                 <div class="flex items-center gap-2 truncate">
-                    <span class="text-base">📎</span>
+                    <span class="text-sm">📎</span>
                     <span class="font-bold truncate">@{{ selectedFile.name }}</span>
-                    <span class="text-gray-500 dark:text-gray-400">(@{{ formatFileSize(selectedFile.size) }})</span>
+                    <span class="text-gray-500 dark:text-gray-400 text-[11px]">(@{{ formatFileSize(selectedFile.size) }})</span>
                 </div>
                 <button
                     type="button"
                     @click="removeSelectedFile"
-                    class="rounded-full bg-emerald-200 hover:bg-emerald-300 dark:bg-emerald-800 p-1 text-xs text-emerald-900 dark:text-emerald-100 font-bold"
+                    class="rounded-full bg-emerald-200 hover:bg-emerald-300 dark:bg-emerald-800 p-0.5 text-xs text-emerald-900 dark:text-emerald-100 font-bold"
                 >
                     ✕
                 </button>
             </div>
 
-            <!-- WhatsApp Message Composer -->
-            <div class="border-t border-gray-200 bg-[#f0f2f5] p-3 dark:border-gray-800 dark:bg-[#202c33] shrink-0">
-                <form @submit.prevent="sendMessage" class="flex items-center gap-2">
+            <!-- Compact WhatsApp Message Composer (Flush at Bottom) -->
+            <div class="border-t border-gray-200 bg-[#f0f2f5] px-3 py-2 dark:border-gray-800 dark:bg-[#202c33] shrink-0">
+                <form @submit.prevent="sendMessage" class="flex items-center gap-2 m-0 p-0">
                     <!-- File Attachment Button -->
                     <label
-                        class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-[#00a884] dark:text-gray-400 dark:hover:bg-gray-800 transition shrink-0"
+                        class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-[#00a884] dark:text-gray-400 dark:hover:bg-gray-800 transition shrink-0"
                         title="Attach Document, PDF, Image, Video, Audio"
                     >
-                        <span class="text-xl">📎</span>
+                        <span class="text-lg">📎</span>
                         <input
                             type="file"
                             ref="fileInput"
@@ -257,7 +263,8 @@
                         v-model="newMessage"
                         rows="1"
                         placeholder="Type a message... (Press Enter to Send, Shift+Enter for new line)"
-                        class="flex-1 rounded-2xl border-none bg-white px-4 py-2 text-xs leading-relaxed outline-none focus:ring-1 focus:ring-[#00a884] dark:bg-[#2a3942] dark:text-white resize-none shadow-sm max-h-28"
+                        class="flex-1 rounded-full border-none bg-white px-4 py-2 text-xs leading-tight outline-none focus:ring-1 focus:ring-[#00a884] dark:bg-[#2a3942] dark:text-white resize-none shadow-sm"
+                        style="min-height: 36px; max-height: 80px;"
                         @keydown.enter.exact.prevent="sendMessage"
                     ></textarea>
 
@@ -265,11 +272,11 @@
                     <button
                         type="submit"
                         :disabled="(!newMessage.trim() && !selectedFile) || isSending || !phoneNumber.trim()"
-                        class="flex h-10 w-10 items-center justify-center rounded-full bg-[#00a884] text-white hover:bg-[#008f6f] disabled:opacity-40 shadow-sm transition shrink-0"
+                        class="flex h-8 w-8 items-center justify-center rounded-full bg-[#00a884] text-white hover:bg-[#008f6f] disabled:opacity-40 shadow-sm transition shrink-0"
                         title="Send Message"
                     >
-                        <span v-if="isSending" class="animate-spin text-sm">⏳</span>
-                        <span v-else class="text-base">🚀</span>
+                        <span v-if="isSending" class="animate-spin text-xs">⏳</span>
+                        <span v-else class="text-sm">🚀</span>
                     </button>
                 </form>
             </div>

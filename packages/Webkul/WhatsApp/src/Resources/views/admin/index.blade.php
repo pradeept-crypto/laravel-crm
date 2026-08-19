@@ -212,17 +212,17 @@
                                     <!-- Media Attachment -->
                                     <div v-if="msg.media_stream_url || msg.media_url" style="margin-bottom: 8px;">
                                         <template v-if="msg.type === 'image'">
-                                            <div style="border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.05); max-width: 320px; max-height: 260px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                            <div style="border-radius: 10px; overflow: hidden; background: rgba(0,0,0,0.05); max-width: 240px; max-height: 180px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                                 <img
                                                     v-if="!imageErrors[msg.id]"
                                                     :src="msg.media_stream_url || msg.media_url"
                                                     alt="Image"
-                                                    style="border-radius: 12px; max-height: 260px; width: auto; max-width: 100%; object-fit: cover; cursor: pointer;"
+                                                    style="border-radius: 10px; max-height: 160px; width: 240px; height: 160px; object-fit: cover; cursor: pointer;"
                                                     @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
                                                     v-on:error="handleImageError(msg.id)"
                                                     loading="lazy"
                                                 />
-                                                <div v-else style="padding: 12px; text-align: center; min-width: 200px;">
+                                                <div v-else style="padding: 12px; text-align: center; width: 200px;">
                                                     <span style="font-size: 20px; display: block; margin-bottom: 4px;">🖼️</span>
                                                     <span style="font-size: 11px; color: #4b5563; font-weight: 600; display: block;">@{{ msg.body || 'Image Attachment' }}</span>
                                                     <button type="button" @click="retryImage(msg.id)" style="margin-top: 4px; font-size: 11px; color: #00a884; font-weight: 700; background: none; border: none; cursor: pointer;">🔄 Retry</button>
