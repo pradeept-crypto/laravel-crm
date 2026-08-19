@@ -329,7 +329,7 @@
             methods: {
                 fetchMessages() {
                     this.isLoading = true;
-                    this.$axios.get("{{ route('admin.whatsapp.thread') }}", {
+                    this.$axios.get("{{ route('admin.whatsapp.messages') }}", {
                         params: {
                             lead_id: this.leadId,
                             phone: this.phoneNumber,
@@ -346,7 +346,7 @@
                 },
 
                 fetchMessagesSilent() {
-                    this.$axios.get("{{ route('admin.whatsapp.thread') }}", {
+                    this.$axios.get("{{ route('admin.whatsapp.messages') }}", {
                         params: {
                             lead_id: this.leadId,
                             phone: this.phoneNumber,

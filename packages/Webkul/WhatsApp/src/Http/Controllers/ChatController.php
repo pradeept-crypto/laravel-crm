@@ -80,6 +80,7 @@ class ChatController extends Controller
      */
     public function thread(Request $request, ?int $leadId = null): JsonResponse
     {
+        $leadId = $leadId ?: $request->query('lead_id');
         $phone = $request->query('phone');
         $cleanPhone = $phone ? preg_replace('/\D/', '', (string) $phone) : '';
         $phone10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
