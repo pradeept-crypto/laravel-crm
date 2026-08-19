@@ -5,6 +5,7 @@ use Webkul\Admin\Http\Controllers\Controller;
 use Webkul\Admin\Http\Controllers\User\ForgotPasswordController;
 use Webkul\Admin\Http\Controllers\User\ResetPasswordController;
 use Webkul\Admin\Http\Controllers\User\SessionController;
+use Webkul\Admin\Http\Controllers\User\SocialiteController;
 
 Route::withoutMiddleware(['user'])->group(function () {
     /**
@@ -25,6 +26,14 @@ Route::withoutMiddleware(['user'])->group(function () {
         Route::middleware(['user'])->group(function () {
             Route::delete('logout', 'destroy')->name('admin.session.destroy');
         });
+    });
+
+    /**
+     * SSO Socialite routes.
+     */
+    Route::controller(SocialiteController::class)->prefix('auth')->group(function () {
+        Route::get('{provider}/redirect', 'redirectToProvider')->name('admin.auth.socialite.redirect');
+        Route::get('{provider}/callback', 'handleProviderCallback')->name('admin.auth.socialite.callback');
     });
 
     /**
