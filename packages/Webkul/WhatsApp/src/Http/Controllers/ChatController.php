@@ -5,10 +5,12 @@ namespace Webkul\WhatsApp\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Webkul\Contact\Models\Person;
 use Webkul\Lead\Models\Lead;
 use Webkul\WhatsApp\Models\WhatsAppMessage;
+use Webkul\WhatsApp\Services\WhatsAppMediaService;
 use Webkul\WhatsApp\Services\WhatsAppService;
 
 class ChatController extends Controller
@@ -110,11 +112,74 @@ class ChatController extends Controller
             });
         }
 
-        $messages = $query->orderBy('created_at', 'asc')->get();
+        $messages = $query->orderBy('created_at', 'asc')->get()->map(function ($msg) {
+            $data = $msg->toArray();
+            if ($msg->media_url || in_array($msg->type, ['image', 'document', 'audio', 'video'], true)) {
+                $data['media_stream_url'] = route('admin.whatsapp.media', $msg->id);
+            }
+
+            return $data;
+        });
 
         return response()->json([
             'data' => $messages,
         ]);
+    }
+
+    /**
+     * Stream media file for a WhatsApp message.
+     * Automatically self-heals from Meta API if local cached file is missing.
+     */
+    public function media(int $id, WhatsAppMediaService $mediaService)
+    {
+        $message = WhatsAppMessage::findOrFail($id);
+
+        // 1. Check if media exists locally on disk
+        if (! empty($message->media_url)) {
+            $parsedPath = parse_url($message->media_url, PHP_URL_PATH);
+            $relativePath = preg_replace('#^/storage/#', '', (string) $parsedPath);
+
+            if (Storage::disk('public')->exists($relativePath)) {
+                $fullPath = Storage::disk('public')->path($relativePath);
+                $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+
+                return response()->file($fullPath, [
+                    'Content-Type' => $mime,
+                    'Cache-Control' => 'public, max-age=86400',
+                ]);
+            }
+        }
+
+        // 2. Self-healing fallback: If local file is missing, re-fetch from Meta using media_id in raw_payload
+        $rawMediaId = data_get($message->raw_payload, "{$message->type}.id")
+            ?? data_get($message->raw_payload, 'id');
+
+        if ($rawMediaId && in_array($message->type, ['image', 'video', 'audio', 'document'], true)) {
+            $newMediaUrl = $mediaService->fetchAndStore($rawMediaId, $message->type);
+            if ($newMediaUrl) {
+                $message->update(['media_url' => $newMediaUrl]);
+
+                $parsedPath = parse_url($newMediaUrl, PHP_URL_PATH);
+                $relativePath = preg_replace('#^/storage/#', '', (string) $parsedPath);
+
+                if (Storage::disk('public')->exists($relativePath)) {
+                    $fullPath = Storage::disk('public')->path($relativePath);
+                    $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+
+                    return response()->file($fullPath, [
+                        'Content-Type' => $mime,
+                        'Cache-Control' => 'public, max-age=86400',
+                    ]);
+                }
+            }
+        }
+
+        // 3. Fallback: If external media URL exists, redirect or return 404
+        if (! empty($message->media_url) && filter_var($message->media_url, FILTER_VALIDATE_URL)) {
+            return redirect($message->media_url);
+        }
+
+        abort(404, 'Media not found');
     }
 
     /**

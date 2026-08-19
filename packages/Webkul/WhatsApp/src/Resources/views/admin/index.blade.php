@@ -210,29 +210,39 @@
                                     }"
                                 >
                                     <!-- Media Attachment -->
-                                    <div v-if="msg.media_url" style="margin-bottom: 8px;">
+                                    <div v-if="msg.media_stream_url || msg.media_url" style="margin-bottom: 8px;">
                                         <template v-if="msg.type === 'image'">
-                                            <img
-                                                :src="msg.media_url"
-                                                alt="Image"
-                                                style="border-radius: 8px; max-height: 240px; object-fit: cover; cursor: pointer;"
-                                                @click="openMedia(msg.media_url)"
-                                            />
+                                            <div style="border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.05); min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                                                <img
+                                                    v-if="!imageErrors[msg.id]"
+                                                    :src="msg.media_stream_url || msg.media_url"
+                                                    alt="Image"
+                                                    style="border-radius: 8px; max-height: 260px; width: 100%; object-fit: cover; cursor: pointer;"
+                                                    @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
+                                                    @error="handleImageError(msg.id)"
+                                                    loading="lazy"
+                                                />
+                                                <div v-else style="padding: 12px; text-align: center;">
+                                                    <span style="font-size: 20px; display: block; margin-bottom: 4px;">🖼️</span>
+                                                    <span style="font-size: 11px; color: #6b7280;">Image unavailable</span>
+                                                    <button type="button" @click="retryImage(msg.id)" style="display: block; margin: 4px auto 0; font-size: 11px; color: #00a884; font-weight: 700; background: none; border: none; cursor: pointer;">🔄 Retry</button>
+                                                </div>
+                                            </div>
                                         </template>
                                         <template v-else-if="msg.type === 'audio'">
-                                            <audio controls :src="msg.media_url" style="width: 100%;"></audio>
+                                            <audio controls :src="msg.media_stream_url || msg.media_url" style="width: 100%; height: 32px;"></audio>
                                         </template>
                                         <template v-else-if="msg.type === 'video'">
-                                            <video controls :src="msg.media_url" style="border-radius: 8px; max-height: 240px;"></video>
+                                            <video controls :src="msg.media_stream_url || msg.media_url" style="border-radius: 8px; max-height: 240px; width: 100%;"></video>
                                         </template>
                                         <template v-else>
                                             <a
-                                                :href="msg.media_url"
+                                                :href="msg.media_stream_url || msg.media_url"
                                                 target="_blank"
-                                                style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; text-decoration: underline; font-weight: 600; color: #059669;"
+                                                download
+                                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #00a884; background: rgba(0, 168, 132, 0.1); padding: 6px 12px; border-radius: 8px; text-decoration: none;"
                                             >
-                                                <span class="icon-download"></span>
-                                                Download Attachment
+                                                <span>📄 Download @{{ msg.body || 'Document' }}</span>
                                             </a>
                                         </template>
                                     </div>
@@ -378,6 +388,7 @@
                         showNewChatModal: false,
                         newChatNumber: '',
                         newChatTemplate: 'hello_world',
+                    imageErrors: {},
                     };
                 },
 
@@ -594,6 +605,19 @@
 
                     openMedia(url) {
                         window.open(url, '_blank');
+                    },
+
+                    openLightbox(url, caption) {
+                        window.open(url, '_blank');
+                    },
+
+                    handleImageError(id) {
+                        this.imageErrors[id] = true;
+                    },
+
+                    retryImage(id) {
+                        delete this.imageErrors[id];
+                        this.$forceUpdate();
                     }
                 }
             });

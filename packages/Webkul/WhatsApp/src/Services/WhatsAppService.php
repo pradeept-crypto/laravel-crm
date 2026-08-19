@@ -93,7 +93,10 @@ class WhatsAppService
     {
         $url = "https://graph.facebook.com/{$this->apiVersion}/{$mediaId}";
 
-        $response = Http::withToken($this->accessToken)->get($url);
+        $response = Http::withToken($this->accessToken)
+            ->withHeaders(['User-Agent' => 'curl/7.68.0'])
+            ->timeout(15)
+            ->get($url);
 
         if ($response->failed()) {
             Log::error('WhatsApp media meta lookup failed', [
@@ -112,7 +115,10 @@ class WhatsAppService
      */
     public function downloadMediaBytes(string $mediaUrl): ?string
     {
-        $response = Http::withToken($this->accessToken)->get($mediaUrl);
+        $response = Http::withToken($this->accessToken)
+            ->withHeaders(['User-Agent' => 'curl/7.68.0'])
+            ->timeout(30)
+            ->get($mediaUrl);
 
         if ($response->failed()) {
             Log::error('WhatsApp media download failed', ['url' => $mediaUrl]);
