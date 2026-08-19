@@ -41,6 +41,9 @@ $vars = [
     'MAIL_ENCRYPTION' => getenv('MAIL_ENCRYPTION') ?: 'tls',
     'MAIL_FROM_ADDRESS' => getenv('MAIL_FROM_ADDRESS') ?: '',
     'MAIL_FROM_NAME' => getenv('MAIL_FROM_NAME') ?: 'AUURA CRM',
+    'GOOGLE_CLIENT_ID' => getenv('GOOGLE_CLIENT_ID') ?: '',
+    'GOOGLE_CLIENT_SECRET' => getenv('GOOGLE_CLIENT_SECRET') ?: '',
+    'GOOGLE_REDIRECT_URI' => getenv('GOOGLE_REDIRECT_URI') ?: ($isRailway ? 'https://laravel-crm-production-baa6.up.railway.app/admin/auth/google/callback' : 'http://localhost:8000/admin/auth/google/callback'),
 ];
 
 $lines = file_exists($envPath) ? file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
