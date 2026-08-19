@@ -212,20 +212,20 @@
                                     <!-- Media Attachment -->
                                     <div v-if="msg.media_stream_url || msg.media_url" style="margin-bottom: 8px;">
                                         <template v-if="msg.type === 'image'">
-                                            <div style="border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.05); min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                                            <div style="border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.05); max-width: 320px; max-height: 260px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                                 <img
                                                     v-if="!imageErrors[msg.id]"
                                                     :src="msg.media_stream_url || msg.media_url"
                                                     alt="Image"
-                                                    style="border-radius: 8px; max-height: 260px; width: 100%; object-fit: cover; cursor: pointer;"
+                                                    style="border-radius: 12px; max-height: 260px; width: auto; max-width: 100%; object-fit: cover; cursor: pointer;"
                                                     @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
                                                     v-on:error="handleImageError(msg.id)"
                                                     loading="lazy"
                                                 />
-                                                <div v-else style="padding: 12px; text-align: center;">
+                                                <div v-else style="padding: 12px; text-align: center; min-width: 200px;">
                                                     <span style="font-size: 20px; display: block; margin-bottom: 4px;">🖼️</span>
-                                                    <span style="font-size: 11px; color: #6b7280;">Image unavailable</span>
-                                                    <button type="button" @click="retryImage(msg.id)" style="display: block; margin: 4px auto 0; font-size: 11px; color: #00a884; font-weight: 700; background: none; border: none; cursor: pointer;">🔄 Retry</button>
+                                                    <span style="font-size: 11px; color: #4b5563; font-weight: 600; display: block;">@{{ msg.body || 'Image Attachment' }}</span>
+                                                    <button type="button" @click="retryImage(msg.id)" style="margin-top: 4px; font-size: 11px; color: #00a884; font-weight: 700; background: none; border: none; cursor: pointer;">🔄 Retry</button>
                                                 </div>
                                             </div>
                                         </template>
@@ -236,14 +236,25 @@
                                             <video controls :src="msg.media_stream_url || msg.media_url" style="border-radius: 8px; max-height: 240px; width: 100%;"></video>
                                         </template>
                                         <template v-else>
-                                            <a
-                                                :href="msg.media_stream_url || msg.media_url"
-                                                target="_blank"
-                                                download
-                                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #00a884; background: rgba(0, 168, 132, 0.1); padding: 6px 12px; border-radius: 8px; text-decoration: none;"
-                                            >
-                                                <span>📄 Download @{{ msg.body || 'Document' }}</span>
-                                            </a>
+                                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08); min-width: 240px; max-width: 320px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                                                    <div style="width: 36px; height: 36px; border-radius: 8px; background: #00a884; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; text-transform: uppercase; shrink: 0;">
+                                                        DOC
+                                                    </div>
+                                                    <div style="min-width: 0;">
+                                                        <div style="font-size: 12px; font-weight: 700; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@{{ msg.body || 'Document' }}</div>
+                                                        <div style="font-size: 10px; color: #6b7280; text-transform: uppercase; font-weight: 600;">Document</div>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    :href="msg.media_stream_url || msg.media_url"
+                                                    target="_blank"
+                                                    download
+                                                    style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: white; background: #00a884; padding: 6px 12px; border-radius: 6px; text-decoration: none; shrink: 0;"
+                                                >
+                                                    ⬇ Download
+                                                </a>
+                                            </div>
                                         </template>
                                     </div>
 

@@ -134,19 +134,27 @@ class ChatController extends Controller
     {
         $message = WhatsAppMessage::findOrFail($id);
 
-        // 1. Check if media exists locally on disk
+        // 1. Check if media exists locally on disk across multiple candidate paths
         if (! empty($message->media_url)) {
             $parsedPath = parse_url($message->media_url, PHP_URL_PATH);
-            $relativePath = preg_replace('#^/storage/#', '', (string) $parsedPath);
+            $relativePath = ltrim(preg_replace('#^/storage/#', '', (string) $parsedPath), '/');
 
-            if (Storage::disk('public')->exists($relativePath)) {
-                $fullPath = Storage::disk('public')->path($relativePath);
-                $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+            $candidatePaths = [
+                Storage::disk('public')->path($relativePath),
+                public_path('storage/'.$relativePath),
+                storage_path('app/public/'.$relativePath),
+                public_path($relativePath),
+            ];
 
-                return response()->file($fullPath, [
-                    'Content-Type' => $mime,
-                    'Cache-Control' => 'public, max-age=86400',
-                ]);
+            foreach ($candidatePaths as $candidate) {
+                if (file_exists($candidate) && is_file($candidate)) {
+                    $mime = mime_content_type($candidate) ?: 'application/octet-stream';
+
+                    return response()->file($candidate, [
+                        'Content-Type' => $mime,
+                        'Cache-Control' => 'public, max-age=86400',
+                    ]);
+                }
             }
         }
 
@@ -160,13 +168,13 @@ class ChatController extends Controller
                 $message->update(['media_url' => $newMediaUrl]);
 
                 $parsedPath = parse_url($newMediaUrl, PHP_URL_PATH);
-                $relativePath = preg_replace('#^/storage/#', '', (string) $parsedPath);
+                $relativePath = ltrim(preg_replace('#^/storage/#', '', (string) $parsedPath), '/');
+                $candidate = Storage::disk('public')->path($relativePath);
 
-                if (Storage::disk('public')->exists($relativePath)) {
-                    $fullPath = Storage::disk('public')->path($relativePath);
-                    $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+                if (file_exists($candidate) && is_file($candidate)) {
+                    $mime = mime_content_type($candidate) ?: 'application/octet-stream';
 
-                    return response()->file($fullPath, [
+                    return response()->file($candidate, [
                         'Content-Type' => $mime,
                         'Cache-Control' => 'public, max-age=86400',
                     ]);
@@ -174,9 +182,20 @@ class ChatController extends Controller
             }
         }
 
-        // 3. Fallback: If external media URL exists, redirect or return 404
+        // 3. Fallback: If external media URL exists, redirect
         if (! empty($message->media_url) && filter_var($message->media_url, FILTER_VALIDATE_URL)) {
             return redirect($message->media_url);
+        }
+
+        // 4. Return clean placeholder if image was wiped across past server restarts
+        if ($message->type === 'image') {
+            $name = htmlspecialchars($message->body ?: 'Image');
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200" fill="#f0f2f5"><rect width="300" height="200" rx="12" fill="#e2e8f0"/><path d="M120 85a15 15 0 1 0 0-30 15 15 0 0 0 0 30zm-40 65h160l-45-60-35 45-25-30-55 45z" fill="#94a3b8"/><text x="150" y="170" font-family="sans-serif" font-size="12" font-weight="600" fill="#64748b" text-anchor="middle">'.$name.'</text></svg>';
+
+            return response($svg, 200, [
+                'Content-Type' => 'image/svg+xml',
+                'Cache-Control' => 'no-cache',
+            ]);
         }
 
         abort(404, 'Media not found');

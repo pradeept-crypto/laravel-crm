@@ -122,20 +122,20 @@
                             :class="msg.direction === 'outbound' ? 'bg-[#d9fdd3] dark:bg-[#005c4b] text-[#111b21] dark:text-[#e9edef] rounded-tr-none' : 'bg-white dark:bg-[#202c33] text-[#111b21] dark:text-[#e9edef] rounded-tl-none border border-black/5'"
                         >
                             <!-- Image Attachment Preview -->
-                            <div v-if="msg.type === 'image'" class="mb-1.5 overflow-hidden rounded-xl bg-black/5 relative min-w-[200px] min-h-[140px] flex items-center justify-center">
+                            <div v-if="msg.type === 'image'" class="mb-1.5 overflow-hidden rounded-xl bg-black/5 relative max-w-[280px] sm:max-w-[320px] max-h-[260px] flex items-center justify-center shadow-sm">
                                 <template v-if="!imageErrors[msg.id]">
                                     <img
                                         :src="msg.media_stream_url || msg.media_url"
                                         alt="Image"
-                                        class="max-h-72 w-full object-cover rounded-xl cursor-pointer hover:opacity-95 transition"
+                                        class="max-h-[260px] w-auto max-w-full object-cover rounded-xl cursor-pointer hover:opacity-95 transition"
                                         @click="openLightbox(msg.media_stream_url || msg.media_url, msg.body)"
                                         v-on:error="handleImageError(msg.id)"
                                         loading="lazy"
                                     />
                                 </template>
-                                <div v-else class="p-4 text-center">
+                                <div v-else class="p-3 text-center min-w-[220px]">
                                     <span class="text-2xl block mb-1">🖼️</span>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">Image unavailable</p>
+                                    <p class="text-xs text-gray-700 dark:text-gray-300 font-semibold truncate">@{{ msg.body || 'Image Attachment' }}</p>
                                     <button
                                         type="button"
                                         @click="retryImage(msg.id)"
@@ -147,23 +147,23 @@
                             </div>
 
                             <!-- Document / File Attachment Preview -->
-                            <div v-else-if="msg.type === 'document'" class="mb-1.5 p-3 rounded-xl bg-black/5 dark:bg-white/10 flex items-center justify-between gap-3 min-w-[220px]">
+                            <div v-else-if="msg.type === 'document'" class="mb-1.5 p-2.5 rounded-xl bg-white/90 dark:bg-black/20 flex items-center justify-between gap-3 min-w-[240px] max-w-[320px] border border-black/10 dark:border-white/10 shadow-sm">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold text-xs uppercase shrink-0">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#00a884] text-white font-bold text-xs uppercase shrink-0 shadow-sm">
                                         @{{ getFileExt(msg.body || msg.media_url) }}
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="truncate font-semibold text-xs text-gray-900 dark:text-white">@{{ msg.body || 'Document' }}</p>
-                                        <span class="text-[10px] text-gray-500 dark:text-gray-400 uppercase">Document Attachment</span>
+                                        <p class="truncate font-bold text-xs text-gray-900 dark:text-white" :title="msg.body || 'Document'">@{{ msg.body || 'Document' }}</p>
+                                        <span class="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Document</span>
                                     </div>
                                 </div>
                                 <a
                                     :href="msg.media_stream_url || msg.media_url"
                                     target="_blank"
                                     download
-                                    class="shrink-0 rounded-lg bg-[#00a884] px-2.5 py-1 text-xs font-bold text-white hover:bg-[#008f6f] shadow-sm transition"
+                                    class="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#00a884] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#008f6f] shadow-sm transition"
                                 >
-                                    ⬇ Download
+                                    <span>⬇</span> Download
                                 </a>
                             </div>
 
